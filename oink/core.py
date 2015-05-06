@@ -1,0 +1,3 @@
+"""
+Core structures for Oink.
+"""
