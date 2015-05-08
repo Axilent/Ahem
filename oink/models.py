@@ -2,9 +2,13 @@
 Models for Oink.
 """
 from django.db import models
+from oink.dispatcher import register_notifications
 
-class Notification(models.Model):
-    """
-    A notification.
-    """
-    
+
+# Any model code here
+
+
+# ==========================
+# = Main hook for registry =
+# ==========================
+register_notifications()

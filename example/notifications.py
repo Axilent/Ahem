@@ -5,12 +5,16 @@ from oink import Notification, GlobalScope, UserScope, DelayedEvent, QuerySetSco
 from datetime import timedelta
 from example.models import Shopper
 
+# =================
+# = Notifications =
+# =================
+
 class SystemBroadcast(Notification):
     """
     A notification type that broadcasts to the entire system.
     """
     name = 'System Broadcast' # the topic name of the notification
-    scope = GlobalScope # the scope of the notification - this one goes to everyone
+    scope = GlobalScope(Shopper) # the scope of the notification - this one goes to every Shopper
     retention = 30 # the number of days this notification should be retained. If None then retained forever.
     receipt_required = False # if set to True, the notification must be read before the retention countdown starts
     
@@ -30,6 +34,10 @@ class AbandonedCartReachout(Notification):
     initiating_event = DelayedEvent('cart-abandoned',timedelta(days=2)) # Initiating event is cart abandoned when
                                                                         # the session expires - plus two days of
                                                                         # delay
+    extract_recipient_context = ['cart_items'] # variables extracted per recipient
+    
+    templates = {'default':'example/abandoned_cart_reachout.html',          # multiple notification flavors
+                 'mobile':'example/abandoned_cart_reachout_mobile.html'}
     
     def conditions(self,context):
         """
@@ -40,9 +48,6 @@ class AbandonedCartReachout(Notification):
             return True
         else:
             return False
-    
-    templates = {'default':'example/abandoned_cart_reachout.html',          # multiple notification flavors
-                 'mobile':'example/abandoned_cart_reachout_mobile.html'}
  
  class BigSpenderPromo(Notification):
      """
