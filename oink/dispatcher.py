@@ -3,6 +3,9 @@ Main notification dispatcher.
 """
 
 from django.conf import settings
+import inspect
+
+notification_registry = {}
 
 def get_module(module_name):
     """
@@ -36,4 +39,8 @@ def load_notifications(app_path,module):
     """ 
     Loads notifications from the module.
     """
+    from oink.core import Notification
     
+    for name, attribute in inspect.get_members(module):
+        if inspect.isclass(attribute) and issubclass(attribute,Notification) and not attribute is Notification:
+            # this is a notification - register

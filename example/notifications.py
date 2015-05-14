@@ -4,6 +4,7 @@ Example notifications implementation.
 from oink import Notification, GlobalScope, UserScope, DelayedEvent, QuerySetScope, CalendarSchedule
 from datetime import timedelta
 from example.models import Shopper
+from django.dispatch import Signal
 
 # =================
 # = Notifications =
@@ -27,7 +28,7 @@ class AbandonedCartReachout(Notification):
     A notification received after someone abandons a shopping cart.
     """
     name = 'Abandoned Cart Reachout'
-    scope = UserScope # requires a non-anonymous user
+    scope = UserScope() # requires a non-anonymous user
     retention = 5
     override_retention = 45 # number of days before notification deleted, regardless of receipt required
     receipt_required = True
@@ -62,3 +63,13 @@ class AbandonedCartReachout(Notification):
      extract_recipient_context = ['first_name','last_name']
      
      templates = {'default':'example/big_spender_promo.html'}
+
+
+system_broadcast = Signal()
+system_broadcast.connect(SystemBroadcast())
+
+cart_abandoned = Signal()
+cart_abondoned.connect(AbandonedCartReachout())
+
+purchase = Signal()
+purchase.connect(BigSpenderPromo())
