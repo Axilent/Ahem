@@ -1,8 +1,8 @@
 """
-Models for Oink.
+Models for ahem.
 """
 from django.db import models
-from oink.dispatcher import register_notifications
+from ahem.dispatcher import register_notifications
 
 
 # Any model code here

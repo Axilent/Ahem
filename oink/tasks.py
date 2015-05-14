@@ -1,8 +1,8 @@
 """ 
-Celery tasks for Oink.
+Celery tasks for ahem.
 """
-from oink.celery import app
-from oink.dispatcher import notification_registry
+from ahem.celery import app
+from ahem.dispatcher import notification_registry
 
 @app.task
 def notify_recipient(recipient,notification_name,sender,**kwargs):

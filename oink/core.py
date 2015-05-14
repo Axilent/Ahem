@@ -1,17 +1,17 @@
 """
-Core structures for Oink.
+Core structures for ahem.
 """
 from django import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 import logging
 
-log = logging.getLogger('oink')
+log = logging.getLogger('ahem')
 
-oink_async = True if hasattr(settings,'OINK_ASYNC') and settings.OINK_ASYNC else False
+ahem_async = True if hasattr(settings,'AHEM_ASYNC') and settings.AHEM_ASYNC else False
 
-if oink_async:
-    from oink.tasks import notify_recipient
+if ahem_async:
+    from ahem.tasks import notify_recipient
 
 class Notification(object):
     """ 
@@ -40,7 +40,7 @@ class Scope(object):
         Process the signal, pushing onto each recipient.
         """
         for recipient in self.get_recipients(notification,sender,**kwargs):
-            if oink_async:
+            if ahem_async:
                 notify_recipient.delay(recipient,notification.name,sender,**kwargs)
             else:
                 if notification.conditions(recipient,sender,**kwargs):

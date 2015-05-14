@@ -28,7 +28,7 @@ def register_notifications(self):
     Registers all notifications in the application.
     """
     for app_path in settings.INSTALLED_APPS:
-        if app_path != 'oink': # don't load yourself
+        if app_path != 'ahem': # don't load yourself
             try:
                 module = get_module('%s.notifications' % app_path)
                 load_notifications(app_path,module)
@@ -39,7 +39,7 @@ def load_notifications(app_path,module):
     """ 
     Loads notifications from the module.
     """
-    from oink.core import Notification
+    from ahem.core import Notification
     
     for name, attribute in inspect.get_members(module):
         if inspect.isclass(attribute) and issubclass(attribute,Notification) and not attribute is Notification:

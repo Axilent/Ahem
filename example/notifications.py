@@ -1,7 +1,7 @@
 """
 Example notifications implementation.
 """
-from oink import Notification, GlobalScope, UserScope, DelayedEvent, QuerySetScope, CalendarSchedule
+from ahem import Notification, GlobalScope, UserScope, DelayedEvent, QuerySetScope, CalendarSchedule
 from datetime import timedelta
 from example.models import Shopper
 from django.dispatch import Signal
