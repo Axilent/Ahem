@@ -44,3 +44,4 @@ def load_notifications(app_path,module):
     for name, attribute in inspect.get_members(module):
         if inspect.isclass(attribute) and issubclass(attribute,Notification) and not attribute is Notification:
             # this is a notification - register
+            notification_registry[(app_path,attribute.name)] = attribute

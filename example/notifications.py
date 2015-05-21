@@ -28,7 +28,7 @@ class AbandonedCartReachout(Notification):
     A notification received after someone abandons a shopping cart.
     """
     name = 'Abandoned Cart Reachout'
-    scope = UserScope() # requires a non-anonymous user
+    scope = UserScope() # requires a non-anonymous user, 'username' must be in the context
     retention = 5
     override_retention = 45 # number of days before notification deleted, regardless of receipt required
     receipt_required = True
