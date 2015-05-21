@@ -37,7 +37,9 @@ class Notification(object):
         """ 
         Sends the notification to the recipient.
         """
-        pass # TODO
+        from ahem.models import Recipient
+        rec = Recipient.objects.recipient_for_model(recipient)
+        rec.push_notification(notification,sender,**kwargs)
 
 class Scope(object):
     """ 
