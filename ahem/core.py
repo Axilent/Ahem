@@ -2,7 +2,6 @@
 Core structures for ahem.
 """
 from django import settings
-from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 import logging
 import json
@@ -15,110 +14,6 @@ ahem_async = True if hasattr(settings,'AHEM_ASYNC') and settings.AHEM_ASYNC else
 if ahem_async:
     from ahem.tasks import notify_recipient
 
-class Notification(object):
-    """ 
-    Base notification class.  Notifications extend this class.
-    """
-    initiating_event = ImmediateEvent() # defaults to an immediate event
-    
-    def __call__(self,sender,**kwargs):
-        """ 
-        Receiver callback function.
-        """
-        self.scope.process(self,sender,**kwargs)
-    
-    def conditions(self,recipient,sender,**kwargs):
-        """ 
-        Default conditions.  Always evaluates to True. Subclasses override.
-        """
-        return True
-        
-    def send(self,recipient,sender,**kwargs):
-        """ 
-        Sends the notification to the recipient.
-        """
-        from ahem.models import Recipient
-        rec = Recipient.objects.recipient_for_model(recipient)
-        rec.push_notification(notification,sender,**kwargs)
-
-class Scope(object):
-    """ 
-    Base scope class.  A scope identifies the recipients for notifications.
-    Subclasses implement different methods of defining recipients.
-    """
-    def process(self,notification,sender,**kwargs):
-        """ 
-        Process the signal, if the initiating event returns true, will execute the
-        notification immediately.
-        """
-        if notification.initiating_event.on_trigger(notification,sender,**kwargs):
-            self.execute(notification,sender,**kwargs)
-    
-    def execute(self,notification,sender,**kwargs):
-        """ 
-        Executes the notification.
-        """
-        for recipient in self.get_recipients(notification,sender,**kwargs):
-            ctx = self.recipient_context(notification,sender,recipient,**kwargs) # tailor context to recipient
-            if ahem_async:
-                notify_recipient.delay(recipient,notification.name,sender,**ctx)
-            else:
-                if notification.conditions(recipient,sender,**ctx):
-                    notification.send(recipient,sender,**ctx)
-    
-    def recipient_context(self,notification,sender,recipient,**kwargs):
-        """ 
-        Creates context for a specific recipient.  Default behavior is to just copy the
-        root context and add the recipient.
-        """
-        ctx = kwargs.copy()
-        ctx['recipient'] = recipient
-        return ctx
-
-class GlobalScope(Scope):
-    """ 
-    Gets all members of the specified model class.
-    """
-    def __init__(self,model_class):
-        self.model_class = model_class
-    
-    def get_recipients(self,notification,sender,**kwargs):
-        """ 
-        Gets all of the recipients.
-        """
-        return self.model_class.all()
-
-class QuerySetScope(Scope):
-    """ 
-    Returns a queryset.
-    """
-    def __init__(self,queryset):
-        self.queryset = queryset
-    
-    def get_recipients(self,notification,sender,**kwargs):
-        """ 
-        Gets the results of the queryset.
-        """
-        return self.queryset
-
-class UserScope(Scope):
-    """ 
-    A specific user.
-    """
-    def __init__(self,user_model=User,lookup_field='username'):
-        self.user_model = user_model
-        self.lookup_field = lookup_field
-    
-    def get_recipients(self,notification,sender,**kwargs):
-        """ 
-        Gets the specific user.
-        """
-        try:
-            args = {self.lookup_field:kwargs[self.lookup_field]}
-            return self.user_model.filter(**args)
-        except ObjectDoesNotExist:
-            log.exception('Cannot find recipient %s.' % kwargs[self.lookup_field])
-            return []
 
 class ImmediateEvent(object):
     """ 
@@ -140,7 +35,7 @@ class DelayedEvent(object):
         """
         self.event_name = event_name
         self.timedelta = timedelta
-    
+
     def on_trigger(self,notification,sender,**kwargs):
         """ 
         Returns false, but records event for resumption in future.
@@ -156,4 +51,97 @@ class DelayedEvent(object):
                                             context=json.dumps(**kwargs))
         return False
 
+
+class Notification(object):
+    """ 
+    Base notification class.  Notifications extend this class.
+    """
+    initiating_event = ImmediateEvent() # defaults to an immediate event
+    
+    def __call__(self,sender,**kwargs):
+        """ 
+        Receiver callback function.
+        """
+        self.scope.process(self,sender,**kwargs)
+    
+    def conditions(self, recipient, sender, **kwargs):
+        """ 
+        Default conditions.  Always evaluates to True. Subclasses override.
+        """
+        return True
+        
+    def send(self, recipient, sender, **kwargs):
+        """ 
+        Sends the notification to the recipient.
+        """
+        from ahem.models import Recipient
+        rec = Recipient.objects.get(content_object=recipient)
+        rec.push_notification(notification,sender,**kwargs)
+
+
+class Scope(object):
+    """ 
+    Base scope class.  A scope identifies the recipients for notifications.
+    Subclasses implement different methods of defining recipients.
+    """
+    def get_recipients(self, context={}, **kwargs):
+        return self.queryset.all()
+
+    def process(self,notification,sender,**kwargs):
+        """ 
+        Process the signal, if the initiating event returns true, will execute the
+        notification immediately.
+        """
+        if notification.initiating_event.on_trigger(notification,sender,**kwargs):
+            self.execute(notification,sender,**kwargs)
+    
+    def execute(self,notification,sender,**kwargs):
+        """ 
+        Executes the notification.
+        """
+        for recipient in self.get_recipients(notification,sender,**kwargs):
+            ctx = self.recipient_context(notification,sender,recipient,**kwargs) # tailor context to recipient
+            if ahem_async:
+                notify_recipient.delay(recipient,notification.name,sender,**ctx)
+            else:
+                if notification.conditions(recipient,sender,**ctx):
+                    notification.send(recipient,sender,**ctx)
+    
+    def recipient_context(self, notification, sender, recipient, **kwargs):
+        """ 
+        Creates context for a specific recipient.  Default behavior is to just copy the
+        root context and add the recipient.
+        """
+        ctx = kwargs.copy()
+        ctx['recipient'] = recipient
+        return ctx
+
+
+class QuerySetScope(Scope):
+    """ 
+    Returns a queryset.
+    """
+    def __init__(self, queryset):
+        self.queryset = queryset
+
+
+class SingleUserScope(Scope):
+    """ 
+    A specific user.
+    """
+    def __init__(self, user_model=settings.AUTH_USER_MODEL, lookup_field='id', context_id_field='id'):
+        self.user_model = user_model
+        self.lookup_field = lookup_field
+    
+    def get_recipients(self, context={}, **kwargs):
+        """ 
+        Gets the specific user.
+        """
+        user_id = context[context_id_field]
+        try:
+            args = { self.lookup_field:user_id }
+            return self.user_model.filter(**args)
+        except ObjectDoesNotExist:
+            log.exception('Cannot find recipient %s.' % kwargs[self.lookup_field])
+            return []
         
