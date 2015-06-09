@@ -49,7 +49,7 @@ class AbandonedCartReachout(Notification):
             return False
 ```
 
-Notifications with a DelayedEvent will generate an entry in the "DelayedEvent" table, and will be scheduled directly in Celery.   
+Notifications with a DelayedEvent will generate an entry in the "DeferredNotification" table, and will be scheduled directly in Celery.   
 ```CalendarSchedule``` notifications will be verified according to the ```AHEM_CALENDAR_SCHEDULE_PERIODICITY```.   
 Notifications with no ```initiating_event``` will run immediately.   
 
