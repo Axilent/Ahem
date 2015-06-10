@@ -50,19 +50,19 @@ class AbandonedCartReachout(Notification):
         else:
             return False
  
- class BigSpenderPromo(Notification):
-     """
-     A monthly promo that goes to big spenders.
-     """
-     name = 'Big Spender Promo'
-     scope = QuerySetScope(Shopper.objects.filter(total_spent__gte=100.0)) # All shoppers who spent $100 or more
-     retention = 1
-     receipt_required = True
-     override_retention = 30
-     schedule = CalendarSchedule(timedelta(day_of_month=1))
-     extract_recipient_context = ['first_name','last_name']
-     
-     templates = {'default':'example/big_spender_promo.html'}
+class BigSpenderPromo(Notification):
+    """
+    A monthly promo that goes to big spenders.
+    """
+    name = 'Big Spender Promo'
+    scope = QuerySetScope(Shopper.objects.filter(total_spent__gte=100.0)) # All shoppers who spent $100 or more
+    retention = 1
+    receipt_required = True
+    override_retention = 30
+    schedule = CalendarSchedule(timedelta(day_of_month=1))
+    extract_recipient_context = ['first_name','last_name']
+
+    templates = {'default':'example/big_spender_promo.html'}
 
 
 system_broadcast = Signal()
