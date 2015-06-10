@@ -49,6 +49,22 @@ class BackendSetting(models.Model):
         return u'%s:%s' % (self.key,self.value)
 
 
+class RecipientNotificationSetting(models.Model):
+    """
+    Recipient preferences for a notification
+    """
+    recipient = models.ForeignKey(Recipient, related_name='backends')
+    notification = models.CharField(max_length=255)
+    key = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
+    
+    class Meta:
+        unique_together = (('recipient_backend','key'),)
+
+    def __unicode__(self):
+        return u'%s:%s' % (self.key,self.value)
+
+
 class DeferredNotification(models.Model):
     """
     A notification that has been deferred until a future time.

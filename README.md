@@ -18,7 +18,7 @@ class SystemBroadcast(Notification):
     trigger_type = CalendarSchedule(timedelta(day_of_month=1))
 
     backends = ['email']
-    
+
     templates = {
     	'default':'example/system_broadcast.html', 
     	'email': 'example/system_broadcast_email.html' # 'email' is the backend name
@@ -42,6 +42,14 @@ class AdminReport(Notification):
     	'email': 'example/admin_report_email.html'
     }
 
+    def get_template_context_data(self, user, context, backend, notification_settings):
+    	# returns a dictionary with the context to be passed when rendering the template
+    	# - user -> the user being notified
+    	# - context -> the context passed when the notification was triggered
+    	# - backend -> the backend name
+    	# - notification_settings -> a dictionary with the key values settings for the user in the backend
+    	return {}
+
 
 class AbandonedCartReachout(Notification):
     """
@@ -54,13 +62,17 @@ class AbandonedCartReachout(Notification):
     	'cart-abandoned',
     	default_delay=timedelta(days=2))
 
-    required_template_context = ['cart_items']
+    required_template_context = ['cart_item_ids']
 
     backends = ['mobile']
     templates = {
     	'default':'example/abandoned_cart_reachout.html',
         'mobile':'example/abandoned_cart_reachout_mobile.html'
    	}
+
+   	def get_template_context_data(self, user, context, backend, notification_settings):
+   		context['cart_items'] = CartItem.objects.filter(id__in=context['cart_item_ids'])
+   		return context
 
 
 class NewProductsAvailable(Notification):
@@ -78,7 +90,6 @@ class NewProductsAvailable(Notification):
 	backends = ['mobile']
     templates = {
     	'default':'example/new_products_available.html',
-        'mobile':'example/new_products_available.html'
    	}
 
 	def get_recipient_users(self, queryset, context):
@@ -88,6 +99,41 @@ class NewProductsAvailable(Notification):
 			queryset = queryset.filter(gender__in=gender_filter)
 
 		return queryset.all()
+
+
+class SumupNotification(Notification):
+	"""
+	Notifies updates according to choosen user frequency
+	"""
+	name = 'sumup'
+
+	scope = QuerySetScope(User.objects)
+	trigger_type = CalendarSchedule(timedelta(day_of_week=[2,3,4,5,6]))
+
+	default_notification_settings = {
+		'frequency': 'daily'
+	}
+
+	backends = ['email']
+	templates = {
+    	'default':'example/sumup.html',
+   	}
+
+   	def get_template_context_data(self, user, context, backend, notification_settings):
+   		if notification_settings['frequency'] == 'daily':
+   			context['items'] = # filter only the updates for the day
+   		if notification_settings['frequency'] == 'weekly':
+   			context['items'] = # filter only the updated of the week
+   		return context
+
+   	def should_be_sent(self, user, context, backend, notification_settings):
+   		# allows conditional logic before sending the notification
+   		# returns True if it should be sent
+   		if notification_settings['frequency'] == 'daily':
+   			return True
+   		if notification_settings['frequency'] == 'weekly' and timedelta(day_of_week=1):
+   			return True
+   		return False
 ```
 
 Notifications with a NotificationEvent will generate an entry in the "DeferredNotification" table, and will be scheduled directly in Celery.   
@@ -146,5 +192,3 @@ for the specified backend, it will not be triggered.
 If ```backends``` is not passed, notifications will be sent to all backends registered in the Notification ```backends``` variable.   
 Users will only receive notifications on the backends they are registered on.  
 ```delay``` is an optional parameter that allows the default notification delay to be overwriten.   
-Notifications with ```CalendarSchedule``` cannot be triggered.   
-
