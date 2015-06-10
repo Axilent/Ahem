@@ -13,8 +13,10 @@ class SystemBroadcast(Notification):
     A notification type that broadcasts to the entire system.
     """
     name = 'system_broadcast' # a unique identifier for the notification
+    
     scope = QuerySetScope(Shopper.objects) # the scope of the notification - this one goes to every Shopper
-    initiating_event = CalendarSchedule(timedelta(day_of_month=1))
+    trigger_type = CalendarSchedule(timedelta(day_of_month=1))
+
     backends = ['email']
     
     templates = {
@@ -23,35 +25,71 @@ class SystemBroadcast(Notification):
     }
 
 
+class AdminReport(Notification):
+	"""
+	Weekly report to system admins
+	"""
+
+	name = 'admin_report'
+
+	scope = QuerySetScope(User.objects)
+	trigger_type = CalendarSchedule(timedelta(day_of_week=2))
+
+	backends = ['email']
+
+	templates = {
+    	'default':'example/admin_report.html', 
+    	'email': 'example/admin_report_email.html'
+    }
+
+    def get_recipient_users(self, queryset, context):
+    	return queryset.filter(email='admin@axilent.com')
+
+
 class AbandonedCartReachout(Notification):
     """
     A notification received after someone abandons a shopping cart.
     """
     name = 'abandoned_cart_reachout'
+    
     scope = SingleUserScope() # requires a non-anonymous user, 'user_id' must be in the context
-    # Initiating event is cart abandoned when the session expires - plus two days of delay
-    initiating_event = DelayedEvent('cart-abandoned',timedelta(days=2))
-    required_context = ['user_id', 'cart_items']
+    trigger_type = NotificationEvent(
+    	'cart-abandoned',
+    	default_delay=timedelta(days=2))
+
+    required_template_context = ['cart_items']
+
+    backends = ['mobile']
     
     templates = {
     	'default':'example/abandoned_cart_reachout.html',          # multiple notification flavors
         'mobile':'example/abandoned_cart_reachout_mobile.html'
    	}
-    
-    def conditions(self,context):
-        """
-        Conditional code for cart. Notification will only fire if cart value exceeds $25.
-        """
-        cart = context['cart']
-        if cart.total() > 25.0:
-            return True
-        else:
-            return False
+
+
+class NewProductsAvailable(Notification):
+	"""
+	Notifies all users about a new products. It's also possible to filter
+	only female or male users.
+	"""
+	name = 'new_products_available'
+
+	scope = QuerySetScope(Users.objects)
+	trigger_type = NotificationEvent('new-product')
+
+	required_template_context = ['product_ids']
+
+	def get_recipient_users(self, queryset, context):
+		gender_filter = context.get('gender_filter', None)
+
+		if gender_filter:
+			queryset = queryset.filter(gender__in=gender_filter)
+
+		return queryset.all()
 ```
 
-Notifications with a DelayedEvent will generate an entry in the "DeferredNotification" table, and will be scheduled directly in Celery.   
+Notifications with a NotificationEvent will generate an entry in the "DeferredNotification" table, and will be scheduled directly in Celery.   
 ```CalendarSchedule``` notifications will be verified according to the ```AHEM_CALENDAR_SCHEDULE_PERIODICITY```.   
-Notifications with no ```initiating_event``` will run immediately.   
 
 ## Backends
 
@@ -97,12 +135,14 @@ provided or something goes wrong it will return ```False```.
 ```
 AbandonedCartReachout.trigger(
 	context={'id': 1, 'cart_items': [34, 23, 12]}, 
+	delay=timedelta(days=0),
 	backends=['email', 'mobile'])
 ```
 
 The ```backends``` param specifies which backends should be triggered. If the notification does not have a template 
 for the specified backend, it will not be triggered.   
 If ```backends``` is not passed, notifications will be sent to all backends registered in the Notification ```backends``` variable.   
-Users will only receive notifications on the backends they are registered on.   
+Users will only receive notifications on the backends they are registered on.  
+```delay``` is an optional parameter that allows the default notification delay to be overwriten.   
 Notifications with ```CalendarSchedule``` cannot be triggered.   
 

@@ -78,70 +78,88 @@ class Notification(object):
         rec = Recipient.objects.get(content_object=recipient)
         rec.push_notification(notification,sender,**kwargs)
 
+    def get_recipients(self, queryset, context):
+        return queryset.all()
+
 
 class Scope(object):
     """ 
     Base scope class.  A scope identifies the recipients for notifications.
     Subclasses implement different methods of defining recipients.
     """
-    def get_recipients(self, context={}, **kwargs):
-        return self.queryset.all()
+    # def process(self,notification,sender,**kwargs):
+    #     """ 
+    #     Process the signal, if the initiating event returns true, will execute the
+    #     notification immediately.
+    #     """
+    #     if notification.initiating_event.on_trigger(notification,sender,**kwargs):
+    #         self.execute(notification,sender,**kwargs)
+    
+    # def execute(self,notification,sender,**kwargs):
+    #     """ 
+    #     Executes the notification.
+    #     """
+    #     for recipient in self.get_recipients(notification,sender,**kwargs):
+    #         ctx = self.recipient_context(notification,sender,recipient,**kwargs) # tailor context to recipient
+    #         if ahem_async:
+    #             notify_recipient.delay(recipient,notification.name,sender,**ctx)
+    #         else:
+    #             if notification.conditions(recipient,sender,**ctx):
+    #                 notification.send(recipient,sender,**ctx)
+    
+    # def recipient_context(self, notification, sender, recipient, **kwargs):
+    #     """ 
+    #     Creates context for a specific recipient.  Default behavior is to just copy the
+    #     root context and add the recipient.
+    #     """
+    #     ctx = kwargs.copy()
+    #     ctx['recipient'] = recipient
+    #     return ctx
 
-    def process(self,notification,sender,**kwargs):
-        """ 
-        Process the signal, if the initiating event returns true, will execute the
-        notification immediately.
-        """
-        if notification.initiating_event.on_trigger(notification,sender,**kwargs):
-            self.execute(notification,sender,**kwargs)
-    
-    def execute(self,notification,sender,**kwargs):
-        """ 
-        Executes the notification.
-        """
-        for recipient in self.get_recipients(notification,sender,**kwargs):
-            ctx = self.recipient_context(notification,sender,recipient,**kwargs) # tailor context to recipient
-            if ahem_async:
-                notify_recipient.delay(recipient,notification.name,sender,**ctx)
-            else:
-                if notification.conditions(recipient,sender,**ctx):
-                    notification.send(recipient,sender,**ctx)
-    
-    def recipient_context(self, notification, sender, recipient, **kwargs):
-        """ 
-        Creates context for a specific recipient.  Default behavior is to just copy the
-        root context and add the recipient.
-        """
-        ctx = kwargs.copy()
-        ctx['recipient'] = recipient
-        return ctx
+    def _get_users(self, notification, context):
+        queryset = self.get_queryset(context)
+        if hasattr(notification, 'filter_scope'):
+            users = notification.get_recipient_users(queryset, context)
+        else:
+            users = queryset.all()
+
+        return users
+
+    def get_queryset(self, context={}):
+        raise NotImplementedError 
 
 
 class QuerySetScope(Scope):
     """ 
     Returns a queryset.
     """
-    def __init__(self, queryset):
+    def __init__(self, queryset, required_context=[]):
         self.queryset = queryset
+        self.required_context = required_context
 
 
 class SingleUserScope(Scope):
-    """ 
+    """
     A specific user.
     """
-    def __init__(self, user_model=settings.AUTH_USER_MODEL, lookup_field='id', context_id_field='id'):
+    def __init__(self, lookup_context_key=['user_id'], lookup_field='id', user_model=None):
+        if not user_model:
+            user_model = get_user_model()
+
         self.user_model = user_model
         self.lookup_field = lookup_field
+        self.lookup_context_key = lookup_context_key
     
-    def get_recipients(self, context={}, **kwargs):
-        """ 
+    def get_queryset(self, context={}):
+        """
         Gets the specific user.
         """
-        user_id = context[context_id_field]
+        user_id = context[self.lookup_context_key]
         try:
             args = { self.lookup_field:user_id }
             return self.user_model.filter(**args)
         except ObjectDoesNotExist:
             log.exception('Cannot find recipient %s.' % kwargs[self.lookup_field])
-            return []
+            return self.user_model.objects.none()
+
         
