@@ -59,9 +59,7 @@ class AbandonedCartReachout(Notification):
     name = 'abandoned_cart_reachout'
     
     scope = SingleUserScope() # requires a non-anonymous user, 'user_id' must be in the context
-    trigger_type = NotificationEvent(
-    	'cart-abandoned',
-    	default_delay=timedelta(days=2))
+    trigger_type = NotificationEvent(default_delay=timedelta(days=2))
 
     required_context = ['cart_item_ids']
 
@@ -84,7 +82,7 @@ class NewProductsAvailable(Notification):
 	name = 'new_products_available'
 
 	scope = QuerySetScope(Users.objects)
-	trigger_type = NotificationEvent('new-product')
+	trigger_type = NotificationEvent()
 
 	required_context = ['product_ids']
 
