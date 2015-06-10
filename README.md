@@ -17,19 +17,23 @@ class SystemBroadcast(Notification):
     scope = QuerySetScope(Shopper.objects) # the scope of the notification - this one goes to every Shopper
     trigger_type = CalendarSchedule(timedelta(day_of_month=1))
 
-    backends = ['email']
+    backends = ['email', 'mobile']
 
     templates = {
     	'default':'example/system_broadcast.html', 
     	'email': 'example/system_broadcast_email.html' # 'email' is the backend name
     }
 
+    def should_be_sent(self, user, context, backend):
+   		# allows conditional logic before sending the notification
+   		# returns True if it should be sent
+   		return True
+
 
 class AdminReport(Notification):
 	"""
 	Weekly report to system admins
 	"""
-
 	name = 'admin_report'
 
 	scope = SingleUserScope(lookup_context_key='email', lookup_field='email')
@@ -37,18 +41,15 @@ class AdminReport(Notification):
 	defatult_context = {'email': 'admin@axilent.com'}
 
 	backends = ['email']
-	templates = {
-    	'default':'example/admin_report.html', 
-    	'email': 'example/admin_report_email.html'
-    }
+	templates = {'default':'example/admin_report.html'}
 
-    def get_template_context_data(self, user, context, backend, notification_settings):
+    def get_template_context_data(self, user, context, backend):
     	# returns a dictionary with the context to be passed when rendering the template
     	# - user -> the user being notified
     	# - context -> the context passed when the notification was triggered
     	# - backend -> the backend name
-    	# - notification_settings -> a dictionary with the key values settings for the user in the backend
-    	return {}
+    	context['user_count'] = User.objects.count()
+    	return context
 
 
 class AbandonedCartReachout(Notification):
@@ -62,7 +63,7 @@ class AbandonedCartReachout(Notification):
     	'cart-abandoned',
     	default_delay=timedelta(days=2))
 
-    required_template_context = ['cart_item_ids']
+    required_context = ['cart_item_ids']
 
     backends = ['mobile']
     templates = {
@@ -70,7 +71,7 @@ class AbandonedCartReachout(Notification):
         'mobile':'example/abandoned_cart_reachout_mobile.html'
    	}
 
-   	def get_template_context_data(self, user, context, backend, notification_settings):
+   	def get_template_context_data(self, user, context, backend):
    		context['cart_items'] = CartItem.objects.filter(id__in=context['cart_item_ids'])
    		return context
 
@@ -85,12 +86,10 @@ class NewProductsAvailable(Notification):
 	scope = QuerySetScope(Users.objects)
 	trigger_type = NotificationEvent('new-product')
 
-	required_template_context = ['product_ids']
+	required_context = ['product_ids']
 
 	backends = ['mobile']
-    templates = {
-    	'default':'example/new_products_available.html',
-   	}
+    templates = {'default':'example/new_products_available.html'}
 
 	def get_recipient_users(self, queryset, context):
 		gender_filter = context.get('gender_filter', None)
@@ -101,7 +100,7 @@ class NewProductsAvailable(Notification):
 		return queryset.all()
 
 
-class SumupNotification(Notification):
+class DailySumupNotification(Notification):
 	"""
 	Notifies updates according to choosen user frequency
 	"""
@@ -110,30 +109,11 @@ class SumupNotification(Notification):
 	scope = QuerySetScope(User.objects)
 	trigger_type = CalendarSchedule(timedelta(day_of_week=[2,3,4,5,6]))
 
-	default_notification_settings = {
-		'frequency': 'daily'
-	}
-
 	backends = ['email']
-	templates = {
-    	'default':'example/sumup.html',
-   	}
+	templates = {'default':'example/sumup.html'}
 
-   	def get_template_context_data(self, user, context, backend, notification_settings):
-   		if notification_settings['frequency'] == 'daily':
-   			context['items'] = # filter only the updates for the day
-   		if notification_settings['frequency'] == 'weekly':
-   			context['items'] = # filter only the updated of the week
-   		return context
-
-   	def should_be_sent(self, user, context, backend, notification_settings):
-   		# allows conditional logic before sending the notification
-   		# returns True if it should be sent
-   		if notification_settings['frequency'] == 'daily':
-   			return True
-   		if notification_settings['frequency'] == 'weekly' and timedelta(day_of_week=1):
-   			return True
-   		return False
+	def get_template_context_data(self, user, context, backend):
+		return Events.objects.filter(user=user, created__gte=today_morning)
 ```
 
 Notifications with a NotificationEvent will generate an entry in the "DeferredNotification" table, and will be scheduled directly in Celery.   
@@ -150,12 +130,12 @@ AHEM_BACKENDS = (
 )
 ```
 ### Custom backends
-```
+```python
 from ahem.backends import BaseBackend
 
 class ParseBackend(BaseBackend):
 	name = 'parse'
-	settings = ['user_id']
+	required_settings = ['user_id']
 
 	def send_notification(self, recipient, deferred_notificaion):
 	    # the specific code to send the notification using your backend
