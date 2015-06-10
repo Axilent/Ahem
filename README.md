@@ -5,7 +5,7 @@ Simple Notifications Framework
 
 ## Notifications
 
-```
+```python
 from ahem import Notification, QuerySetScope, SingleUserScope
 
 class SystemBroadcast(Notification):
@@ -143,7 +143,7 @@ Notifications with a NotificationEvent will generate an entry in the "DeferredNo
 
 Ahem cames with the following default backends:
 
-```
+```python
 AHEM_BACKENDS = (
 	'ahem.backends.EmailBackend',
 	'ahem.backends.MobileBackend'
@@ -162,7 +162,7 @@ class ParseBackend(BaseBackend):
 	    ...
 ```
 and overwrite ```AHEM_BACKENDS``` in your settings file:
-```
+```python
 AHEM_BACKENDS = (
 	'ahem.backends.EmailBackend',
 	'ahem.backends.MobileBackend',
@@ -171,7 +171,7 @@ AHEM_BACKENDS = (
 ```
 ### Registering users
 To register a user in a backend do:
-```
+```python
 ParseBackend.register_user(user, user_id=user.id)
 ```
 The first param is the user to be registerd, the following kwargs will be saved as ```BackendSetting```s.
@@ -180,7 +180,7 @@ provided or something goes wrong it will return ```False```.
 
 ## Triggering notifications:
 
-```
+```python
 AbandonedCartReachout.trigger(
 	context={'id': 1, 'cart_items': [34, 23, 12]}, 
 	delay=timedelta(days=0),
