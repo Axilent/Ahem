@@ -32,18 +32,15 @@ class AdminReport(Notification):
 
 	name = 'admin_report'
 
-	scope = QuerySetScope(User.objects)
+	scope = SingleUserScope(lookup_context_key='email', lookup_field='email')
 	trigger_type = CalendarSchedule(timedelta(day_of_week=2))
+	defatult_context = {'email': 'admin@axilent.com'}
 
 	backends = ['email']
-
 	templates = {
     	'default':'example/admin_report.html', 
     	'email': 'example/admin_report_email.html'
     }
-
-    def get_recipient_users(self, queryset, context):
-    	return queryset.filter(email='admin@axilent.com')
 
 
 class AbandonedCartReachout(Notification):
@@ -60,9 +57,8 @@ class AbandonedCartReachout(Notification):
     required_template_context = ['cart_items']
 
     backends = ['mobile']
-    
     templates = {
-    	'default':'example/abandoned_cart_reachout.html',          # multiple notification flavors
+    	'default':'example/abandoned_cart_reachout.html',
         'mobile':'example/abandoned_cart_reachout_mobile.html'
    	}
 
@@ -78,6 +74,12 @@ class NewProductsAvailable(Notification):
 	trigger_type = NotificationEvent('new-product')
 
 	required_template_context = ['product_ids']
+
+	backends = ['mobile']
+    templates = {
+    	'default':'example/new_products_available.html',
+        'mobile':'example/new_products_available.html'
+   	}
 
 	def get_recipient_users(self, queryset, context):
 		gender_filter = context.get('gender_filter', None)
