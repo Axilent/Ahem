@@ -30,21 +30,28 @@ class NotificationTemplateTests(TestCase):
 
     def setUp(self):
         self.user = mommy.make('auth.User')
+        self.notification = TestNotification()
 
     def test_template_rendering(self):
         user = self.user
 
-        body = TestNotification.render_template(user, 'test_backend')
+        body = self.notification.render_template(user, 'test_backend')
         self.assertEqual(body, 'backend template')
 
     def test_should_fetch_default_template_if_backend_specific_is_not_provided(self):
         user = self.user
 
-        body = TestNotification.render_template(user, 'other_backend')
+        body = self.notification.render_template(user, 'other_backend')
         self.assertIn('default template', body)
 
     def test_context_variable_should_be_available_in_template(self):
         user = self.user
 
-        body = TestNotification.render_template(user, 'other_backend', context={'context_variable': 'IT_WORKED'})
+        body = self.notification.render_template(user, 'other_backend', context={'context_variable': 'IT_WORKED'})
         self.assertIn('IT_WORKED', body)
+
+    def test_user_is_passed_to_the_context(self):
+        user = self.user
+
+        body = self.notification.render_template(user, 'other_backend')
+        self.assertIn(user.username, body)
