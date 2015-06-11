@@ -6,6 +6,8 @@ import json
 from django.db import models
 from django.conf import settings
 
+from jsonfield import JSONField
+
 from ahem.dispatcher import register_notifications
 
 
@@ -16,8 +18,8 @@ class UserBackendRegistry(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='ahem_backends')
     backend = models.CharField(max_length=255)
 
-    settings = models.TextField(blank=True) # JSON serialized user settings
-    
+    settings = JSONField(default={}) # JSON serialized user settings
+
     class Meta:
         unique_together = (('user','backend'),)
 
@@ -42,7 +44,7 @@ class UserBackendRegistry(models.Model):
 #     body = models.TextField(blank=True)
 
 #     created = models.DateTimeField(auto_now=True)
-    
+
 
 # ==========================
 # = Main hook for registry =
