@@ -26,7 +26,7 @@ class TestNotification(Notification):
     }
 
 
-class NotificationTests(TestCase):
+class NotificationTemplateTests(TestCase):
 
     def setUp(self):
         self.user = mommy.make('auth.User')
