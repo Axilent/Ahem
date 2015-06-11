@@ -42,3 +42,18 @@ class BaseBackendTests(TestCase):
 
         self.assertEqual(registry.settings['username'], 'user_name')
         self.assertEqual(registry.settings['id'], 'test_id')
+
+    def test_resgistering_user_again_updates_settings(self):
+        user = mommy.make('auth.User')
+        registry = TestBackend.register_user(user,
+            username='username', id='test_id')
+
+        registry = UserBackendRegistry.objects.get(user=user, backend=TestBackend.name)
+        self.assertEqual(registry.settings['username'], 'username')
+
+        TestBackend.register_user(user,
+            username='new_username', id='test_id')
+
+        registry = UserBackendRegistry.objects.get(user=user, backend=TestBackend.name)
+        self.assertEqual(registry.settings['username'], 'new_username')
+

@@ -1,4 +1,6 @@
 
+from django.core.exceptions import ObjectDoesNotExist
+
 from ahem.models import UserBackendRegistry
 
 
@@ -24,8 +26,15 @@ class BaseBackend(object):
         if not set(required_settings).issubset(set(settings.keys())):
             raise Exception # TODO: change to custom exception
 
-        registry = UserBackendRegistry.objects.create(user=user, backend=cls.name,
-            settings=settings)
+        try:
+            registry = UserBackendRegistry.objects.get(
+                user=user, backend=cls.name)
+        except ObjectDoesNotExist:
+            registry = UserBackendRegistry(
+                user=user, backend=cls.name)
+
+        registry.settings = settings
+        registry.save()
 
         return registry
 
