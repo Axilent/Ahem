@@ -17,6 +17,8 @@ class BaseBackend(object):
     sends the desired notification
     """
 
+    required_settings = []
+
     @classmethod
     def register_user(cls, user, **settings):
         required_settings = []
