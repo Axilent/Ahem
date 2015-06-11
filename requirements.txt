@@ -1,0 +1,5 @@
+Django<1.8
+pysqlite==2.6.3
+django-discover-runner==1
+tox==1.7.0
+model-mommy==1.2.1
