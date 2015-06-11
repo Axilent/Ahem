@@ -38,5 +38,5 @@ class BaseBackend(object):
 
         return registry
 
-    def send_notification(self, user, notification, context={}, **kwargs):
+    def send_notification(self, user, notification, context={}, settings={}):
         raise NotImplementedError
