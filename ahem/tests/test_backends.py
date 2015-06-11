@@ -3,6 +3,7 @@ from django.test import TestCase
 
 from model_mommy import mommy
 
+from ahem.models import UserBackendRegistry
 from ahem.backends import BaseBackend
 
 
@@ -34,8 +35,10 @@ class BaseBackendTests(TestCase):
 
     def test_settings_are_correctly_saved(self):
         user = mommy.make('auth.User')
-        registry = TestBackend.register_user(user,
+        TestBackend.register_user(user,
             username='user_name', id='test_id')
+
+        registry = UserBackendRegistry.objects.get(user=user, backend=TestBackend.name)
 
         self.assertEqual(registry.settings['username'], 'user_name')
         self.assertEqual(registry.settings['id'], 'test_id')
