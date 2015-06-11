@@ -56,4 +56,3 @@ class BaseBackendTests(TestCase):
 
         registry = UserBackendRegistry.objects.get(user=user, backend=TestBackend.name)
         self.assertEqual(registry.settings['username'], 'new_username')
-

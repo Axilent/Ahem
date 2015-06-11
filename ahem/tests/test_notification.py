@@ -22,8 +22,7 @@ class TestNotification(Notification):
 
     templates = {
         'default': 'ahem/tests/test_template.html',
-        'test_backend': 'ahem/tests/test_template_backend.html'
-    }
+        'test_backend': 'ahem/tests/test_template_backend.html'}
 
 
 class NotificationTemplateTests(TestCase):

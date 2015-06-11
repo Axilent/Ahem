@@ -16,28 +16,28 @@ if ahem_async:
 
 
 class ImmediateEvent(object):
-    """ 
+    """
     An event that occurs immediately.
     """
     def on_trigger(self,notification,sender,**kwargs):
-        """ 
+        """
         Immediate events always return True - for immediate processing.
         """
         return True
 
 class DelayedEvent(object):
-    """ 
+    """
     An event that occurs after time has elapsed.
     """
     def __init__(self,event_name,timedelta):
-        """ 
+        """
         Initializes delayed event with the specified time to elapse.
         """
         self.event_name = event_name
         self.timedelta = timedelta
 
     def on_trigger(self,notification,sender,**kwargs):
-        """ 
+        """
         Returns false, but records event for resumption in future.
         """
         from ahem.models import EventRecord
@@ -53,25 +53,25 @@ class DelayedEvent(object):
 
 
 class Notification(object):
-    """ 
+    """
     Base notification class.  Notifications extend this class.
     """
     initiating_event = ImmediateEvent() # defaults to an immediate event
-    
+
     def __call__(self,sender,**kwargs):
-        """ 
+        """
         Receiver callback function.
         """
         self.scope.process(self,sender,**kwargs)
-    
+
     def conditions(self, recipient, sender, **kwargs):
-        """ 
+        """
         Default conditions.  Always evaluates to True. Subclasses override.
         """
         return True
-        
+
     def send(self, recipient, sender, **kwargs):
-        """ 
+        """
         Sends the notification to the recipient.
         """
         from ahem.models import Recipient
@@ -83,20 +83,20 @@ class Notification(object):
 
 
 class Scope(object):
-    """ 
+    """
     Base scope class.  A scope identifies the recipients for notifications.
     Subclasses implement different methods of defining recipients.
     """
     # def process(self,notification,sender,**kwargs):
-    #     """ 
+    #     """
     #     Process the signal, if the initiating event returns true, will execute the
     #     notification immediately.
     #     """
     #     if notification.initiating_event.on_trigger(notification,sender,**kwargs):
     #         self.execute(notification,sender,**kwargs)
-    
+
     # def execute(self,notification,sender,**kwargs):
-    #     """ 
+    #     """
     #     Executes the notification.
     #     """
     #     for recipient in self.get_recipients(notification,sender,**kwargs):
@@ -106,9 +106,9 @@ class Scope(object):
     #         else:
     #             if notification.conditions(recipient,sender,**ctx):
     #                 notification.send(recipient,sender,**ctx)
-    
+
     # def recipient_context(self, notification, sender, recipient, **kwargs):
-    #     """ 
+    #     """
     #     Creates context for a specific recipient.  Default behavior is to just copy the
     #     root context and add the recipient.
     #     """
@@ -116,7 +116,7 @@ class Scope(object):
     #     ctx['recipient'] = recipient
     #     return ctx
 
-    def _get_users(self, notification, context):
+    def get_users(self, notification, context):
         queryset = self.get_queryset(context)
         if hasattr(notification, 'filter_scope'):
             users = notification.get_recipient_users(queryset, context)
@@ -126,11 +126,11 @@ class Scope(object):
         return users
 
     def get_queryset(self, context={}):
-        raise NotImplementedError 
+        raise NotImplementedError
 
 
 class QuerySetScope(Scope):
-    """ 
+    """
     Returns a queryset.
     """
     def __init__(self, queryset, required_context=[]):
@@ -149,7 +149,7 @@ class SingleUserScope(Scope):
         self.user_model = user_model
         self.lookup_field = lookup_field
         self.lookup_context_key = lookup_context_key
-    
+
     def get_queryset(self, context={}):
         """
         Gets the specific user.
@@ -162,4 +162,4 @@ class SingleUserScope(Scope):
             log.exception('Cannot find recipient %s.' % kwargs[self.lookup_field])
             return self.user_model.objects.none()
 
-        
+
