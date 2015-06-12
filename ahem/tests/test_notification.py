@@ -12,7 +12,7 @@ class TestBackend(BaseBackend):
     required_settings = ['username', 'id']
 
 
-class TestBackend(BaseBackend):
+class OtherBackend(BaseBackend):
     name = 'other_backend'
 
 
