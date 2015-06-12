@@ -20,7 +20,7 @@ class QuerySetScope(Scope):
     Returns a queryset.
     """
     def __init__(self, queryset=None):
-        if not queryset:
+        if queryset is None:
             user_model = get_user_model()
             queryset = user_model.objects
 
