@@ -57,3 +57,35 @@ class QuerySetScopeTests(TestCase):
 
         notification_users = notification.get_users({})
         self.assertEqual(len(staffs), len(notification_users))
+
+
+class ContextFilterScopeNotification(Notification):
+    name = 'context_filter_scope_notification'
+
+    backends = ['test_backend', 'other_backend']
+
+    scope = ContextFilterScope(lookup_context_key='is_staff', lookup_field='is_staff')
+
+    templates = {
+        'default': 'ahem/tests/test_template.html'}
+
+
+class ContextFilterScopeTests(TestCase):
+
+    def setUp(self):
+        self.users = mommy.make('auth.User', _quantity=3)
+        self.staffs = mommy.make('auth.User', is_staff=True, _quantity=2)
+
+        self.notification = ContextFilterScopeNotification()
+
+    def test_returns_only_non_staffs(self):
+        users = self.users
+
+        notification_users = self.notification.get_users({'is_staff': False})
+        self.assertEqual(len(users), len(notification_users))
+
+    def test_returns_only_staffs(self):
+        staffs = self.staffs
+
+        notification_users = self.notification.get_users({'is_staff': True})
+        self.assertEqual(len(staffs), len(notification_users))
