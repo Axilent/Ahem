@@ -15,6 +15,8 @@ class Notification(object):
     backends - A list of supported backends for this notification
     templates - A dictionary with a backend name as the key and
     a path for a template as value. Must have a 'default'.
+    trigger_event - A trigger class that specifies when the
+    notification will be sent.
 
     METHODS
     get_template_context_data - returns a dictionary containing

@@ -13,21 +13,16 @@ class SystemBroadcast(Notification):
     A notification type that broadcasts to the entire system.
     """
     name = 'system_broadcast' # a unique identifier for the notification
-    
+
     scope = QuerySetScope(Shopper.objects) # the scope of the notification - this one goes to every Shopper
     trigger_type = CalendarSchedule(timedelta(day_of_month=1))
 
     backends = ['email', 'mobile']
 
     templates = {
-    	'default':'example/system_broadcast.html', 
+    	'default':'example/system_broadcast.html',
     	'email': 'example/system_broadcast_email.html' # 'email' is the backend name
     }
-
-    def should_be_sent(self, user, context, backend):
-   		# allows conditional logic before sending the notification
-   		# returns True if it should be sent
-   		return True
 
 
 class AdminReport(Notification):
@@ -57,7 +52,7 @@ class AbandonedCartReachout(Notification):
     A notification received after someone abandons a shopping cart.
     """
     name = 'abandoned_cart_reachout'
-    
+
     scope = SingleUserScope() # requires a non-anonymous user, 'user_id' must be in the context
     trigger_type = NotificationEvent(default_delay=timedelta(days=2))
 
@@ -114,8 +109,8 @@ class DailySumupNotification(Notification):
 		return Events.objects.filter(user=user, created__gte=today_morning)
 ```
 
-Notifications with a NotificationEvent will generate an entry in the "DeferredNotification" table, and will be scheduled directly in Celery.   
-```CalendarSchedule``` notifications will be verified according to the ```AHEM_CALENDAR_SCHEDULE_PERIODICITY```.   
+Notifications with a NotificationEvent will generate an entry in the "DeferredNotification" table, and will be scheduled directly in Celery.
+```CalendarSchedule``` notifications will be verified according to the ```AHEM_CALENDAR_SCHEDULE_PERIODICITY```.
 
 ## Backends
 
@@ -153,20 +148,20 @@ To register a user in a backend do:
 ParseBackend.register_user(user, user_id=user.id)
 ```
 The first param is the user to be registerd, the following kwargs will be saved as ```BackendSetting```s.
-If the user is successfully registered, ```register_user``` will return ```True```. If some setting is not 
+If the user is successfully registered, ```register_user``` will return ```True```. If some setting is not
 provided or something goes wrong it will return ```False```.
 
 ## Triggering notifications:
 
 ```python
 AbandonedCartReachout.trigger(
-	context={'id': 1, 'cart_items': [34, 23, 12]}, 
+	context={'id': 1, 'cart_items': [34, 23, 12]},
 	delay=timedelta(days=0),
 	backends=['email', 'mobile'])
 ```
 
-The ```backends``` param specifies which backends should be triggered. If the notification does not have a template 
-for the specified backend, it will not be triggered.   
-If ```backends``` is not passed, notifications will be sent to all backends registered in the Notification ```backends``` variable.   
-Users will only receive notifications on the backends they are registered on.  
-```delay``` is an optional parameter that allows the default notification delay to be overwriten.   
+The ```backends``` param specifies which backends should be triggered. If the notification does not have a template
+for the specified backend, it will not be triggered.
+If ```backends``` is not passed, notifications will be sent to all backends registered in the Notification ```backends``` variable.
+Users will only receive notifications on the backends they are registered on.
+```delay``` is an optional parameter that allows the default notification delay to be overwriten.
