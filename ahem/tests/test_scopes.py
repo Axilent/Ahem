@@ -64,7 +64,7 @@ class ContextFilterScopeNotification(Notification):
 
     backends = ['test_backend', 'other_backend']
 
-    scope = ContextFilterScope(lookup_context_key='is_staff', lookup_field='is_staff')
+    scope = ContextFilterScope(context_key='user_is_staff', lookup_field='is_staff')
 
     templates = {
         'default': 'ahem/tests/test_template.html'}
@@ -81,11 +81,11 @@ class ContextFilterScopeTests(TestCase):
     def test_returns_only_non_staffs(self):
         users = self.users
 
-        notification_users = self.notification.get_users({'is_staff': False})
+        notification_users = self.notification.get_users({'user_is_staff': False})
         self.assertEqual(len(users), len(notification_users))
 
     def test_returns_only_staffs(self):
         staffs = self.staffs
 
-        notification_users = self.notification.get_users({'is_staff': True})
+        notification_users = self.notification.get_users({'user_is_staff': True})
         self.assertEqual(len(staffs), len(notification_users))

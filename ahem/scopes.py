@@ -31,14 +31,14 @@ class ContextFilterScope(Scope):
     """
     A specific user.
     """
-    def __init__(self, lookup_context_key=None, lookup_field=None):
+    def __init__(self, context_key=None, lookup_field=None):
         self.queryset = get_user_model().objects
         self.lookup_field = lookup_field
-        self.lookup_context_key = lookup_context_key
+        self.context_key = context_key
 
     def get_queryset(self, context):
         """
         Gets the specific user.
         """
-        value = context[self.lookup_context_key]
+        value = context[self.context_key]
         return self.queryset.filter(**{ self.lookup_field: value })
