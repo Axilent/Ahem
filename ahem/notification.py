@@ -15,7 +15,7 @@ class Notification(object):
     backends - A list of supported backends for this notification
     templates - A dictionary with a backend name as the key and
     a path for a template as value. Must have a 'default'.
-    trigger_event - A trigger class that specifies when the
+    trigger - A trigger class that specifies when the
     notification will be sent.
 
     METHODS
@@ -34,6 +34,13 @@ class Notification(object):
         users = queryset.all()
 
         return users
+
+    def get_next_run_eta(self, last_run_at=None):
+        return self.trigger.next_run_eta(last_run_at)
+
+    @property
+    def is_periodic(self):
+        return self.trigger.is_periodic
 
     def render_template(self, user, backend, context={}, **kwargs):
         template_path = self.templates.get(backend)
