@@ -32,3 +32,7 @@ if LooseVersion(django.get_version()) >= LooseVersion('1.7'):
         'django.middleware.common.CommonMiddleware',
         'django.middleware.csrf.CsrfViewMiddleware'
     )
+
+TIME_ZONE = 'UTC'
+
+USE_TZ = True
