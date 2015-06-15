@@ -34,10 +34,14 @@ class DelayedTrigger(NotificationTrigger):
 
     def next_run_eta(self, last_run_at=None):
         eta = timezone.now() + self.delay_timedelta
+
         if self.at_hour is not None:
             eta = eta.replace(hour=self.at_hour)
         if self.at_minute is not None:
             eta = eta.replace(minute=self.at_minute)
+
+        if timezone.is_aware(eta):
+            eta = eta.astimezone(pytz.UTC)
 
         return eta
 
@@ -66,5 +70,6 @@ class CalendarTrigger(NotificationTrigger):
 
         if is_aware:
             eta = timezone.make_aware(eta, pytz.timezone(settings.TIME_ZONE))
+            eta = eta.astimezone(pytz.UTC)
 
         return eta
