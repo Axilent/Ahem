@@ -40,8 +40,10 @@ class DelayedTrigger(NotificationTrigger):
         if self.at_minute is not None:
             eta = eta.replace(minute=self.at_minute)
 
-        if timezone.is_aware(eta):
-            eta = eta.astimezone(pytz.UTC)
+        if timezone.is_naive(eta):
+            eta = timezone.make_aware(eta, timezone.get_current_timezone())
+
+        eta = eta.astimezone(pytz.UTC)
 
         return eta
 
@@ -70,6 +72,9 @@ class CalendarTrigger(NotificationTrigger):
 
         if is_aware:
             eta = timezone.make_aware(eta, pytz.timezone(settings.TIME_ZONE))
-            eta = eta.astimezone(pytz.UTC)
+        else:
+            eta = timezone.make_aware(eta, timezone.get_current_timezone())
+
+        eta = eta.astimezone(pytz.UTC)
 
         return eta

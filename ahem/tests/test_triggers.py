@@ -90,8 +90,11 @@ class CalendarTriggerTests(TestCase):
         eta = self.notification.get_next_run_eta()
         expected_eta = timezone.now().replace(hour=23, minute=45)
 
-        self.assertTrue(timezone.is_naive(eta))
+        self.assertTrue(timezone.is_aware(eta))
         self.assertTrue(timezone.is_naive(expected_eta))
+
+        expected_eta = timezone.make_aware(expected_eta, timezone.get_current_timezone())
+        expected_eta = expected_eta.astimezone(pytz.UTC)
 
         self.assertEqual(expected_eta.day, eta.day)
         self.assertEqual(expected_eta.hour, eta.hour)
