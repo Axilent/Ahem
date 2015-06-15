@@ -1,7 +1,7 @@
 
 import pytz
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 from django.conf import settings
 from django.utils import timezone
@@ -90,25 +90,37 @@ class CalendarTriggerTests(TestCase):
         eta = self.notification.get_next_run_eta()
         expected_eta = timezone.now().replace(hour=23, minute=45)
 
-        self.assertTrue(timezone.is_aware(eta))
+        self.assertTrue(timezone.is_naive(eta))
         self.assertTrue(timezone.is_naive(expected_eta))
-
-        expected_eta = timezone.make_aware(expected_eta, timezone.get_current_timezone())
-        expected_eta = expected_eta.astimezone(pytz.UTC)
 
         self.assertEqual(expected_eta.day, eta.day)
         self.assertEqual(expected_eta.hour, eta.hour)
         self.assertEqual(expected_eta.minute, eta.minute)
 
     @override_settings(TIME_ZONE='America/Sao_Paulo')
-    def test_next_eta_use_other_time_zone(self):
+    def test_next_eta_other_time_zone(self):
         eta = self.notification.get_next_run_eta()
+
         expected_eta = timezone.now().replace(hour=23, minute=45)
+        expected_eta = expected_eta.astimezone(pytz.UTC)
 
         self.assertTrue(timezone.is_aware(eta))
         self.assertTrue(timezone.is_aware(expected_eta))
 
-        expected_eta = expected_eta.astimezone(pytz.UTC)
+        self.assertEqual(expected_eta.day, eta.day)
+        self.assertEqual(expected_eta.hour, eta.hour)
+        self.assertEqual(expected_eta.minute, eta.minute)
+
+    @override_settings(USE_TZ=False, TIME_ZONE='America/Sao_Paulo')
+    def test_next_eta_use_tz_false_and_other_time_zone(self):
+        eta = self.notification.get_next_run_eta()
+
+        expected_eta = timezone.now().replace(hour=23, minute=45, tzinfo=pytz.UTC)
+        expected_eta = expected_eta.astimezone(pytz.timezone(settings.TIME_ZONE))
+        expected_eta = expected_eta.replace(tzinfo=None)
+
+        self.assertTrue(timezone.is_naive(eta))
+        self.assertTrue(timezone.is_naive(expected_eta))
 
         self.assertEqual(expected_eta.day, eta.day)
         self.assertEqual(expected_eta.hour, eta.hour)
