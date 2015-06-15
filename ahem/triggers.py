@@ -55,14 +55,16 @@ class CalendarTrigger(NotificationTrigger):
         if not last_run_at:
             last_run_at = timezone.now()
 
+        is_aware = False
         if timezone.is_aware(last_run_at):
+            is_aware = True
             last_run_at = timezone.make_naive(last_run_at, pytz.timezone(settings.TIME_ZONE))
 
         is_due, next_time_to_run = self.crontab.is_due(last_run_at)
 
         eta = last_run_at + timedelta(seconds=math.ceil(next_time_to_run))
-        if settings.USE_TZ:
+
+        if is_aware:
             eta = timezone.make_aware(eta, pytz.timezone(settings.TIME_ZONE))
-            eta = eta.astimezone(pytz.UTC)
 
         return eta

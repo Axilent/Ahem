@@ -1,6 +1,9 @@
 
+import pytz
+
 from datetime import datetime, timedelta
 
+from django.conf import settings
 from django.utils import timezone
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -101,6 +104,9 @@ class CalendarTriggerTests(TestCase):
 
         self.assertTrue(timezone.is_aware(eta))
         self.assertTrue(timezone.is_aware(expected_eta))
+
+        eta = eta.astimezone(pytz.UTC)
+        expected_eta = expected_eta.astimezone(pytz.UTC)
 
         self.assertEqual(expected_eta.day, eta.day)
         self.assertEqual(expected_eta.hour, eta.hour)
