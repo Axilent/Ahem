@@ -30,7 +30,8 @@ class UserBackendRegistry(models.Model):
 #     """
 #     notification = models.CharField(max_length=255)
 #     context = models.TextField(blank=True) # JSON serialized notification context
-
+#
+#     ran_at = models.DateTimeField(null=True, blank=True)
 #     created = models.DateTimeField(auto_now=True)
 
 
