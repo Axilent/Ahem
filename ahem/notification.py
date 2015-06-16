@@ -63,7 +63,7 @@ Please define a 'default' template for the notification""")
         kwargs['user'] = user
         return kwargs
 
-    def get_task_eta(delay_timedelta, eta):
+    def get_task_eta(self, delay_timedelta, eta):
         run_eta = None
         if delay_timedelta is None and eta is None:
             run_eta = self.get_next_run_eta()

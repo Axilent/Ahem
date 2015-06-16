@@ -1,10 +1,15 @@
 
+from datetime import timedelta
+
 from django.test import TestCase
+from django.utils import timezone
 
 from model_mommy import mommy
 
 from ahem.backends import BaseBackend
 from ahem.notification import Notification
+from ahem.scopes import QuerySetScope
+from ahem.triggers import DelayedTrigger
 
 
 class TestBackend(BaseBackend):
@@ -19,6 +24,9 @@ class OtherBackend(BaseBackend):
 class TestNotification(Notification):
     name = 'test_notification'
     backends = ['test_backend', 'other_backend']
+
+    scope = QuerySetScope()
+    trigger = DelayedTrigger(timedelta(days=1))
 
     templates = {
         'default': 'ahem/tests/test_template.html',
@@ -54,3 +62,29 @@ class NotificationTemplateTests(TestCase):
 
         body = self.notification.render_template(user, 'other_backend')
         self.assertIn(user.username, body)
+
+
+class NotificationScheduleTests(TestCase):
+
+    def setUp(self):
+        self.user = mommy.make('auth.User')
+        self.notification = TestNotification()
+
+    def test_uses_delay_timedelta_if_is_passed(self):
+        expected = timezone.now() + timedelta(days=2)
+        eta = self.notification.get_task_eta(timedelta(days=2), None)
+
+        self.assertEqual(eta.day, expected.day)
+
+    def test_uses_eta_if_is_passed(self):
+        expected = timezone.now() + timedelta(days=5)
+        eta = self.notification.get_task_eta(None, expected)
+
+        self.assertEqual(eta, expected)
+
+    def test_uses_trigger_default_if_no_everride_is_passed(self):
+        expected = timezone.now() + timedelta(days=1)
+        eta = self.notification.get_task_eta(None, None)
+
+        self.assertEqual(eta.day, expected.day)
+
