@@ -1,8 +1,9 @@
 
+from django.utils import timezone
 from django.template.loader import get_template
 from django.template import Context, Template
 
-from ahem.scopes import QuerySetScope, ContextFilterScope
+from ahem.tasks import dispatch_to_users
 
 
 class Notification(object):
@@ -22,6 +23,8 @@ class Notification(object):
     get_template_context_data - returns a dictionary containing
     variables thar are going to be exposed the template when
     rendering it.
+    schedule - schedules tasks according to notification configuration
+    and passed arguments
     """
 
     def get_users(self, context):
@@ -59,3 +62,27 @@ Please define a 'default' template for the notification""")
     def get_template_context_data(self, user, backend, **kwargs):
         kwargs['user'] = user
         return kwargs
+
+    def get_task_eta(delay_timedelta, eta):
+        run_eta = None
+        if delay_timedelta is None and eta is None:
+            run_eta = self.get_next_run_eta()
+        elif delay_timedelta:
+            run_eta = timezone.now() + delay_timedelta
+        elif eta:
+            run_eta = eta
+
+        return run_eta
+
+    def get_task_backends(self, restrict_backends):
+        return list(set(self.backends).intersection(set(restrict_backends)))
+
+    def schedule(self, context={}, delay_timedelta=None, eta=None, backends=None):
+        run_eta = self.get_task_eta(delay_timedelta, eta)
+        backends = self.get_task_backends(backends)
+
+        dispatch_to_users.delay(
+            self.name,
+            eta=run_eta,
+            context=context,
+            backends=backends)
