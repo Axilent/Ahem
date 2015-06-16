@@ -16,6 +16,7 @@ class Notification(object):
     backends - A list of supported backends for this notification
     templates - A dictionary with a backend name as the key and
     a path for a template as value. Must have a 'default'.
+    scope - the scope of the notification.
     trigger - A trigger class that specifies when the
     notification will be sent.
 

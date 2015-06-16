@@ -1,4 +1,5 @@
 
+from __future__ import absolute_import
 from datetime import timedelta
 
 from django.test import TestCase
@@ -10,11 +11,21 @@ from ahem.backends import BaseBackend
 from ahem.notification import Notification
 from ahem.scopes import QuerySetScope
 from ahem.triggers import DelayedTrigger
+from ahem.dispatcher import add_to_registry
+from ahem.models import DeferredNotification
+
+# Configuring celery to be able to run tasks
+import os
+from celery import Celery
+from django.conf import settings
+
+app = Celery('ahem')
+app.config_from_object('django.conf:settings')
+# end celery configuration
 
 
 class TestBackend(BaseBackend):
     name = 'test_backend'
-    required_settings = ['username', 'id']
 
 
 class OtherBackend(BaseBackend):
@@ -68,7 +79,12 @@ class NotificationScheduleTests(TestCase):
 
     def setUp(self):
         self.user = mommy.make('auth.User')
+
+        add_to_registry(TestNotification)
         self.notification = TestNotification()
+
+        mommy.make('ahem.UserBackendRegistry',
+            user=self.user, backend=TestBackend.name)
 
     def test_uses_delay_timedelta_if_is_passed(self):
         expected = timezone.now() + timedelta(days=2)
@@ -97,3 +113,20 @@ class NotificationScheduleTests(TestCase):
         backends = self.notification.get_task_backends(['test_backend', 'not_allowed_backend'])
 
         self.assertEqual(set(['test_backend']), set(backends))
+
+    def test_schedule_creates_deferred_notification_instances(self):
+        self.notification.schedule()
+
+        deferreds = DeferredNotification.objects.all()
+
+        self.assertEqual(len(deferreds), 1)
+
+    def test_schedule_creates_deferred_notifications_for_each_backend(self):
+        mommy.make('ahem.UserBackendRegistry',
+            user=self.user, backend=OtherBackend.name)
+        self.notification.schedule()
+
+        deferreds = DeferredNotification.objects.all()
+
+        self.assertEqual(len(deferreds), 2)
+

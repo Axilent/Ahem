@@ -1,4 +1,6 @@
 
+from ahem.dispatcher import notification_registry
 
-def get_notificaion(notificaion_name):
-    return None
+
+def get_notification(notificaion_name):
+    return notification_registry[notificaion_name]()

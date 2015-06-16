@@ -4,17 +4,17 @@ Celery tasks for ahem.
 
 from celery import shared_task
 
-from ahem.utils import get_notificaion
+from ahem.utils import get_notification
 from ahem.models import DeferredNotification, UserBackendRegistry
 
 
 @shared_task
 def dispatch_to_users(notification_name, eta=None, context={}, backends=None, **kwargs):
-    notification = get_notificaion(notification_name)
+    notification = get_notification(notification_name)
     users = notification.get_users(context)
     for user in users:
         for backend in backends:
-            user_backend = UserBackendRegistry.objects.get(user=user, backend=backend)
+            user_backend = UserBackendRegistry.objects.filter(user=user, backend=backend).first()
 
             if user_backend:
                 deferred = DeferredNotification.objects.create(
@@ -29,4 +29,4 @@ def dispatch_to_users(notification_name, eta=None, context={}, backends=None, **
 @shared_task
 def send_notification(deferred_id):
     deferred = DeferredNotification.objects.get(id=deferred_id)
-    print deferred
+    # process

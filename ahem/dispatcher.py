@@ -1,11 +1,28 @@
 """
 Main notification dispatcher.
 """
+import inspect
+from importlib import import_module
 
 from django.conf import settings
-import inspect
+
 
 notification_registry = {}
+
+
+def add_to_registry(notification):
+    notification_registry[notification.name] = notification
+
+
+def load_notifications(module):
+    """
+    Loads notifications from the module.
+    """
+    from ahem.notification import Notification
+
+    for name, attribute in inspect.get_members(module):
+        if inspect.isclass(attribute) and issubclass(attribute, Notification) and not attribute is Notification:
+            add_to_registry(attribute)
 
 
 def register_notifications(self):
@@ -13,20 +30,9 @@ def register_notifications(self):
     Registers all notifications in the application.
     """
     for app_path in settings.INSTALLED_APPS:
-        if app_path != 'ahem': # don't load yourself
+        if app_path != 'ahem':
             try:
-                module = get_module('%s.notifications' % app_path)
-                load_notifications(app_path,module)
+                module = import_module('%s.notifications' % app_path)
+                load_notifications(module)
             except ImportError:
                 pass
-
-def load_notifications(app_path,module):
-    """
-    Loads notifications from the module.
-    """
-    from ahem.core import Notification
-
-    for name, attribute in inspect.get_members(module):
-        if inspect.isclass(attribute) and issubclass(attribute,Notification) and not attribute is Notification:
-            # this is a notification - register
-            notification_registry[(app_path,attribute.name)] = attribute
