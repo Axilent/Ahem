@@ -75,7 +75,9 @@ Please define a 'default' template for the notification""")
         return run_eta
 
     def get_task_backends(self, restrict_backends):
-        return list(set(self.backends).intersection(set(restrict_backends)))
+        if restrict_backends:
+            return list(set(self.backends).intersection(set(restrict_backends)))
+        return self.backends
 
     def schedule(self, context={}, delay_timedelta=None, eta=None, backends=None):
         run_eta = self.get_task_eta(delay_timedelta, eta)

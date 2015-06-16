@@ -88,3 +88,12 @@ class NotificationScheduleTests(TestCase):
 
         self.assertEqual(eta.day, expected.day)
 
+    def test_uses_default_backends_if_none_is_passed(self):
+        backends = self.notification.get_task_backends(None)
+
+        self.assertEqual(set(self.notification.backends), set(backends))
+
+    def test_uses_only_intersection_of_passed_backends_and_notification_ones(self):
+        backends = self.notification.get_task_backends(['test_backend', 'not_allowed_backend'])
+
+        self.assertEqual(set(['test_backend']), set(backends))
