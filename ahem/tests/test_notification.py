@@ -1,5 +1,4 @@
 
-from __future__ import absolute_import
 from datetime import timedelta
 
 from django.test import TestCase
@@ -13,15 +12,6 @@ from ahem.scopes import QuerySetScope
 from ahem.triggers import DelayedTrigger
 from ahem.dispatcher import add_to_registry
 from ahem.models import DeferredNotification
-
-# Configuring celery to be able to run tasks
-import os
-from celery import Celery
-from django.conf import settings
-
-app = Celery('ahem')
-app.config_from_object('django.conf:settings')
-# end celery configuration
 
 
 class TestBackend(BaseBackend):

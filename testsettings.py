@@ -1,3 +1,14 @@
+from __future__ import absolute_import
+
+# Configuring celery to be able to run tasks
+import os
+from celery import Celery
+from django.conf import settings
+
+app = Celery('ahem')
+app.config_from_object('django.conf:settings')
+# end celery configuration
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
