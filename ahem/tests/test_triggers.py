@@ -78,46 +78,36 @@ class CalendarTriggerTests(TestCase):
         self.assertTrue(self.notification.is_periodic)
 
     def test_next_eta(self):
+        # crontab schedules in the Celery timezone
+        # eta is therefore referent to Celery timezone
         eta = self.notification.get_next_run_eta()
-        expected_eta = timezone.now().replace(hour=23, minute=45)
+        eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
 
-        self.assertEqual(expected_eta.hour, eta.hour)
-        self.assertEqual(expected_eta.minute, eta.minute)
+        self.assertEqual(eta.hour, 23)
+        self.assertEqual(eta.minute, 45)
 
     @override_settings(USE_TZ=False)
     def test_next_eta_use_tz_false(self):
         eta = self.notification.get_next_run_eta()
-        expected_eta = timezone.now().replace(hour=23, minute=45)
+        eta = timezone.make_aware(eta, timezone.get_current_timezone())
+        eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
 
-        self.assertTrue(timezone.is_naive(eta))
-        self.assertTrue(timezone.is_naive(expected_eta))
-
-        self.assertEqual(expected_eta.hour, eta.hour)
-        self.assertEqual(expected_eta.minute, eta.minute)
+        self.assertEqual(eta.hour, 23)
+        self.assertEqual(eta.minute, 45)
 
     @override_settings(TIME_ZONE='America/Sao_Paulo')
     def test_next_eta_other_time_zone(self):
         eta = self.notification.get_next_run_eta()
+        eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
 
-        expected_eta = timezone.now().replace(hour=23, minute=45)
-        expected_eta = expected_eta.astimezone(pytz.UTC)
-
-        self.assertTrue(timezone.is_aware(eta))
-        self.assertTrue(timezone.is_aware(expected_eta))
-
-        self.assertEqual(expected_eta.hour, eta.hour)
-        self.assertEqual(expected_eta.minute, eta.minute)
+        self.assertEqual(eta.hour, 23)
+        self.assertEqual(eta.minute, 45)
 
     @override_settings(USE_TZ=False, TIME_ZONE='America/Sao_Paulo')
     def test_next_eta_use_tz_false_and_other_time_zone(self):
         eta = self.notification.get_next_run_eta()
+        eta = timezone.make_aware(eta, timezone.get_current_timezone())
+        eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
 
-        expected_eta = timezone.now().replace(hour=23, minute=45, tzinfo=pytz.UTC)
-        expected_eta = expected_eta.astimezone(pytz.timezone(settings.TIME_ZONE))
-        expected_eta = expected_eta.replace(tzinfo=None)
-
-        self.assertTrue(timezone.is_naive(eta))
-        self.assertTrue(timezone.is_naive(expected_eta))
-
-        self.assertEqual(expected_eta.hour, eta.hour)
-        self.assertEqual(expected_eta.minute, eta.minute)
+        self.assertEqual(eta.hour, 23)
+        self.assertEqual(eta.minute, 45)
