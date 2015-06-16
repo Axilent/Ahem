@@ -38,6 +38,9 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
 
     'kombu.transport.django',
+
+    'ahem',
+    'testapp',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -78,6 +81,7 @@ USE_L10N = True
 
 USE_TZ = True
 
+CELERY_TIMEZONE = TIME_ZONE
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.7/howto/static-files/

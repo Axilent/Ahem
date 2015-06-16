@@ -81,7 +81,6 @@ class CalendarTriggerTests(TestCase):
         eta = self.notification.get_next_run_eta()
         expected_eta = timezone.now().replace(hour=23, minute=45)
 
-        self.assertEqual(expected_eta.day, eta.day)
         self.assertEqual(expected_eta.hour, eta.hour)
         self.assertEqual(expected_eta.minute, eta.minute)
 
@@ -93,7 +92,6 @@ class CalendarTriggerTests(TestCase):
         self.assertTrue(timezone.is_naive(eta))
         self.assertTrue(timezone.is_naive(expected_eta))
 
-        self.assertEqual(expected_eta.day, eta.day)
         self.assertEqual(expected_eta.hour, eta.hour)
         self.assertEqual(expected_eta.minute, eta.minute)
 
@@ -107,7 +105,6 @@ class CalendarTriggerTests(TestCase):
         self.assertTrue(timezone.is_aware(eta))
         self.assertTrue(timezone.is_aware(expected_eta))
 
-        self.assertEqual(expected_eta.day, eta.day)
         self.assertEqual(expected_eta.hour, eta.hour)
         self.assertEqual(expected_eta.minute, eta.minute)
 
@@ -122,6 +119,5 @@ class CalendarTriggerTests(TestCase):
         self.assertTrue(timezone.is_naive(eta))
         self.assertTrue(timezone.is_naive(expected_eta))
 
-        self.assertEqual(expected_eta.day, eta.day)
         self.assertEqual(expected_eta.hour, eta.hour)
         self.assertEqual(expected_eta.minute, eta.minute)

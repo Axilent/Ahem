@@ -36,5 +36,3 @@ if LooseVersion(django.get_version()) >= LooseVersion('1.7'):
 TIME_ZONE = 'UTC'
 
 USE_TZ = True
-
-CELERY_TIMEZONE = TIME_ZONE
