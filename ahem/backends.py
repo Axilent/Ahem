@@ -26,7 +26,7 @@ class BaseBackend(object):
             required_settings = cls.required_settings
 
         if not set(required_settings).issubset(set(settings.keys())):
-            raise Exception # TODO: change to custom exception
+            raise Exception("Missing backend settings.") # TODO: change to custom exception
 
         try:
             registry = UserBackendRegistry.objects.get(
@@ -42,3 +42,9 @@ class BaseBackend(object):
 
     def send_notification(self, user, notification, context={}, settings={}):
         raise NotImplementedError
+
+
+class EmailBackend(BaseBackend):
+
+    def send_notification(self, user, notification, context={}, settings={}):
+        pass
