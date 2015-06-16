@@ -130,3 +130,22 @@ class NotificationScheduleTests(TestCase):
 
         self.assertEqual(len(deferreds), 2)
 
+    def test_schedule_creates_notification_for_each_user(self):
+        other_user = mommy.make('auth.User')
+        mommy.make('ahem.UserBackendRegistry',
+            user=other_user, backend=TestBackend.name)
+
+        self.notification.schedule()
+
+        deferreds = DeferredNotification.objects.all()
+
+        self.assertEqual(len(deferreds), 2)
+
+    def test_schedule_only_creates_deferred_notification_for_user_existent_backends(self):
+        other_user = mommy.make('auth.User')
+
+        self.notification.schedule()
+
+        deferreds = DeferredNotification.objects.all()
+
+        self.assertEqual(len(deferreds), 1)
