@@ -1,14 +1,5 @@
 from __future__ import absolute_import
 
-# Configuring celery to be able to run tasks
-import os
-from celery import Celery
-from django.conf import settings
-
-app = Celery('ahem')
-app.config_from_object('django.conf:settings')
-# end celery configuration
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -51,3 +42,17 @@ USE_TZ = True
 CELERY_TIMEZONE = 'UTC'
 CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
 CELERY_ALWAYS_EAGER = True
+
+# Configuring celery to be able to run tasks
+import os
+from django.conf import settings
+
+try:
+    from celery import Celery
+except ImportError:
+    Celery = None
+
+if Celery:
+    app = Celery('ahem')
+    app.config_from_object('django.conf:settings')
+# end celery configuration

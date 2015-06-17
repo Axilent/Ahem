@@ -25,3 +25,12 @@ def get_backend(backend_name):
             return backend()
 
     raise Exception("The specifyed backend is not registered. Add it to AHEM_BACKENDS.")
+
+
+def celery_is_available():
+    try:
+        import celery
+    except ImportError:
+        return False
+    else:
+        return True

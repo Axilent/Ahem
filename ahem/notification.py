@@ -4,6 +4,7 @@ from django.template.loader import get_template
 from django.template import Context, Template
 
 from ahem.tasks import dispatch_to_users
+from ahem.utils import celery_is_available
 
 
 class Notification(object):
@@ -84,8 +85,15 @@ Please define a 'default' template for the notification""")
         run_eta = self.get_task_eta(delay_timedelta, eta)
         backends = self.get_task_backends(backends)
 
-        dispatch_to_users.delay(
-            self.name,
-            eta=run_eta,
-            context=context,
-            backends=backends)
+        if celery_is_available():
+            dispatch_to_users.delay(
+                self.name,
+                eta=run_eta,
+                context=context,
+                backends=backends)
+        else:
+            dispatch_to_users(
+                self.name,
+                eta=run_eta,
+                context=context,
+                backends=backends)

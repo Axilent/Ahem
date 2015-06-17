@@ -9,13 +9,19 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from django.contrib.auth.models import User
 
-from celery.schedules import crontab
 from model_mommy import mommy
 
 from ahem.backends import BaseBackend
 from ahem.notification import Notification
 from ahem.scopes import QuerySetScope
 from ahem.triggers import DelayedTrigger, CalendarTrigger
+from ahem.utils import celery_is_available
+
+
+if celery_is_available():
+    from celery.schedules import crontab
+else:
+    crontab = None
 
 
 class TestBackend(BaseBackend):
@@ -56,58 +62,59 @@ class DelayedTriggerTests(TestCase):
         self.assertEqual(eta.minute, 0)
 
 
-class CalendarTriggerNotification(Notification):
-    name = 'calendar_trigger_notification'
-    backends = ['test_backend']
+if crontab:
+    class CalendarTriggerNotification(Notification):
+        name = 'calendar_trigger_notification'
+        backends = ['test_backend']
 
-    scope = QuerySetScope()
-    trigger = CalendarTrigger(crontab(hour=23, minute=45))
+        scope = QuerySetScope()
+        trigger = CalendarTrigger(crontab(hour=23, minute=45))
 
-    templates = {
-        'default': 'ahem/tests/test_template.html'}
+        templates = {
+            'default': 'ahem/tests/test_template.html'}
 
 
-class CalendarTriggerTests(TestCase):
+    class CalendarTriggerTests(TestCase):
 
-    def setUp(self):
-        self.users = mommy.make('auth.User')
+        def setUp(self):
+            self.users = mommy.make('auth.User')
 
-        self.notification = CalendarTriggerNotification()
+            self.notification = CalendarTriggerNotification()
 
-    def test_is_periodic(self):
-        self.assertTrue(self.notification.is_periodic)
+        def test_is_periodic(self):
+            self.assertTrue(self.notification.is_periodic)
 
-    def test_next_eta(self):
-        # crontab schedules in the Celery timezone
-        # eta is therefore referent to Celery timezone
-        eta = self.notification.get_next_run_eta()
-        eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
+        def test_next_eta(self):
+            # crontab schedules in the Celery timezone
+            # eta is therefore referent to Celery timezone
+            eta = self.notification.get_next_run_eta()
+            eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
 
-        self.assertEqual(eta.hour, 23)
-        self.assertEqual(eta.minute, 45)
+            self.assertEqual(eta.hour, 23)
+            self.assertEqual(eta.minute, 45)
 
-    @override_settings(USE_TZ=False)
-    def test_next_eta_use_tz_false(self):
-        eta = self.notification.get_next_run_eta()
-        eta = timezone.make_aware(eta, timezone.get_current_timezone())
-        eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
+        @override_settings(USE_TZ=False)
+        def test_next_eta_use_tz_false(self):
+            eta = self.notification.get_next_run_eta()
+            eta = timezone.make_aware(eta, timezone.get_current_timezone())
+            eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
 
-        self.assertEqual(eta.hour, 23)
-        self.assertEqual(eta.minute, 45)
+            self.assertEqual(eta.hour, 23)
+            self.assertEqual(eta.minute, 45)
 
-    @override_settings(TIME_ZONE='America/Sao_Paulo')
-    def test_next_eta_other_time_zone(self):
-        eta = self.notification.get_next_run_eta()
-        eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
+        @override_settings(TIME_ZONE='America/Sao_Paulo')
+        def test_next_eta_other_time_zone(self):
+            eta = self.notification.get_next_run_eta()
+            eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
 
-        self.assertEqual(eta.hour, 23)
-        self.assertEqual(eta.minute, 45)
+            self.assertEqual(eta.hour, 23)
+            self.assertEqual(eta.minute, 45)
 
-    @override_settings(USE_TZ=False, TIME_ZONE='America/Sao_Paulo')
-    def test_next_eta_use_tz_false_and_other_time_zone(self):
-        eta = self.notification.get_next_run_eta()
-        eta = timezone.make_aware(eta, timezone.get_current_timezone())
-        eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
+        @override_settings(USE_TZ=False, TIME_ZONE='America/Sao_Paulo')
+        def test_next_eta_use_tz_false_and_other_time_zone(self):
+            eta = self.notification.get_next_run_eta()
+            eta = timezone.make_aware(eta, timezone.get_current_timezone())
+            eta = eta.astimezone(pytz.timezone(settings.CELERY_TIMEZONE))
 
-        self.assertEqual(eta.hour, 23)
-        self.assertEqual(eta.minute, 45)
+            self.assertEqual(eta.hour, 23)
+            self.assertEqual(eta.minute, 45)

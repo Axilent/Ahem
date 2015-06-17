@@ -1,10 +1,14 @@
 
-from celery import shared_task
-
 from django.utils import timezone
 
-from ahem.utils import get_notification, get_backend
+from ahem.utils import get_notification, get_backend, celery_is_available
 from ahem.models import DeferredNotification, UserBackendRegistry
+
+if celery_is_available():
+    from celery import shared_task
+else:
+    def shared_task(func):
+        return func
 
 
 @shared_task
@@ -20,9 +24,13 @@ def dispatch_to_users(notification_name, eta=None, context={}, backends=None, **
                     notification=notification_name,
                     user_backend=user_backend,
                     context=context)
-                task_id = send_notification.apply_async((deferred.id,), eta=eta)
-                deferred.task_id = task_id
-                deferred.save()
+
+                if celery_is_available():
+                    task_id = send_notification.apply_async((deferred.id,), eta=eta)
+                    deferred.task_id = task_id
+                    deferred.save()
+                else:
+                    send_notification(deferred.id)
 
 
 @shared_task
