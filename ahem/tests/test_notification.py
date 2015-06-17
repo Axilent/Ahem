@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import timezone
+from django.test.utils import override_settings
 
 from model_mommy import mommy
 
@@ -17,9 +18,15 @@ from ahem.models import DeferredNotification
 class TestBackend(BaseBackend):
     name = 'test_backend'
 
+    def send_notification(self, user, notification, context={}, settings={}):
+        pass
+
 
 class OtherBackend(BaseBackend):
     name = 'other_backend'
+
+    def send_notification(self, user, notification, context={}, settings={}):
+        pass
 
 
 class TestNotification(Notification):
@@ -34,6 +41,8 @@ class TestNotification(Notification):
         'test_backend': 'ahem/tests/test_template_backend.html'}
 
 
+@override_settings(
+    AHEM_BACKENDS=('ahem.tests.test_notification.TestNotification',))
 class NotificationTemplateTests(TestCase):
 
     def setUp(self):
@@ -65,6 +74,9 @@ class NotificationTemplateTests(TestCase):
         self.assertIn(user.username, body)
 
 
+@override_settings(
+    AHEM_BACKENDS=('ahem.tests.test_notification.TestBackend',
+                   'ahem.tests.test_notification.OtherBackend',))
 class NotificationScheduleTests(TestCase):
 
     def setUp(self):

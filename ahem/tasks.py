@@ -4,7 +4,9 @@ Celery tasks for ahem.
 
 from celery import shared_task
 
-from ahem.utils import get_notification
+from django.utils import timezone
+
+from ahem.utils import get_notification, get_backend
 from ahem.models import DeferredNotification, UserBackendRegistry
 
 
@@ -32,5 +34,14 @@ def send_notification(deferred_id):
         .select_related('user_backend', 'user_backend__user')\
         .get(id=deferred_id)
     user = deferred.user_backend.user
-    backend_name = deferred.user_backend.backend
+    backend_settings = deferred.user_backend.settings
+
+    backend = get_backend(deferred.user_backend.backend)
+    notification = get_notification(deferred.notification)
+
+    backend.send_notification(
+        user, notification, deferred.context, backend_settings)
+
+    deferred.ran_at = timezone.now()
+    deferred.save()
 
