@@ -47,6 +47,13 @@ class BaseBackend(object):
 
 
 class EmailBackend(BaseBackend):
+    """
+    CONTEXT PARAMS
+    subject - An subject for the email.
+    from_email - The email the message will be sent from,
+    default is DEFAULT_FROM_EMAIL.
+    use_html - If true, the email will be sent with html content type.
+    """
     name = 'email'
 
     def send_notification(self, user, notification, context={}, settings={}):
