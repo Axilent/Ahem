@@ -36,6 +36,12 @@ class TestNotification(Notification):
     scope = QuerySetScope()
     trigger = DelayedTrigger(timedelta(days=1))
 
+    def filter_scope(self, queryset, context):
+        username_filter = context.get('username_filter', None)
+        if username_filter:
+            return queryset.filter(username=username_filter).all()
+        return queryset.all()
+
     templates = {
         'default': 'ahem/tests/test_template.html',
         'test_backend': 'ahem/tests/test_template_backend.html'}
@@ -151,3 +157,27 @@ class NotificationScheduleTests(TestCase):
         deferreds = DeferredNotification.objects.all()
 
         self.assertEqual(len(deferreds), 1)
+
+
+class NotificationMethodsTests(TestCase):
+
+    def setUp(self):
+        self.user = mommy.make('auth.User')
+
+        add_to_registry(TestNotification)
+        self.notification = TestNotification()
+
+    def test_get_users(self):
+        user = self.user
+
+        users = self.notification.get_users({})
+
+        self.assertEqual(users[0], user)
+
+    def test_filter_scope(self):
+        other_user = mommy.make('auth.User', username='username')
+
+        users = self.notification.get_users(context={'username_filter': 'username'})
+
+        self.assertEqual(len(users), 1)
+        self.assertEqual(users[0], other_user)

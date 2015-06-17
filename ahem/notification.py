@@ -27,16 +27,16 @@ class Notification(object):
     rendering it.
     schedule - schedules tasks according to notification configuration
     and passed arguments
+    filter_scope - can be used to perform context based filters. Returns
+    a list of users.
     """
 
     def get_users(self, context):
         queryset = self.scope.get_users_queryset(context)
-        # if hasattr(self, 'filter_scope'):
-        #     users = self.get_users(queryset, context)
-        # else:
-        #     users = queryset.all()
-
-        users = queryset.all()
+        if hasattr(self, 'filter_scope'):
+            users = self.filter_scope(queryset, context)
+        else:
+            users = queryset.all()
 
         return users
 
