@@ -3,7 +3,7 @@ from importlib import import_module
 
 from django.conf import settings
 
-from ahem.dispatcher import notification_registry
+from ahem.loader import notification_registry
 from ahem.settings import AHEM_BACKENDS
 
 

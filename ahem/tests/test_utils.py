@@ -2,7 +2,7 @@
 from django.test import TestCase
 
 from ahem.notification import Notification
-from ahem.dispatcher import add_to_registry, notification_registry
+from ahem.loader import add_to_registry, notification_registry
 from ahem.utils import get_notification
 
 

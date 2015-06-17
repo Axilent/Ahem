@@ -11,7 +11,7 @@ from ahem.backends import BaseBackend
 from ahem.notification import Notification
 from ahem.scopes import QuerySetScope
 from ahem.triggers import DelayedTrigger
-from ahem.dispatcher import add_to_registry
+from ahem.loader import add_to_registry
 from ahem.models import DeferredNotification
 
 
