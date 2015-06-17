@@ -8,6 +8,8 @@ from django.conf import settings
 
 from jsonfield import JSONField
 
+from ahem.loader import register_notifications
+
 
 class UserBackendRegistry(models.Model):
     """
@@ -35,3 +37,7 @@ class DeferredNotification(models.Model):
 
     ran_at = models.DateTimeField(null=True, blank=True)
     created = models.DateTimeField(auto_now=True)
+
+
+# Notificaion loader
+register_notifications()

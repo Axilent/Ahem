@@ -18,12 +18,12 @@ def load_notifications(module):
     """
     from ahem.notification import Notification
 
-    for name, attribute in inspect.get_members(module):
+    for name, attribute in inspect.getmembers(module):
         if inspect.isclass(attribute) and issubclass(attribute, Notification) and not attribute is Notification:
             add_to_registry(attribute)
 
 
-def register_notifications(self):
+def register_notifications():
     """
     Registers all notifications in the application.
     """
