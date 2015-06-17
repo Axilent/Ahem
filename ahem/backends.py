@@ -1,5 +1,7 @@
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.mail import send_mail
+from django.conf import settings as django_settings
 
 from ahem.models import UserBackendRegistry
 
@@ -45,6 +47,17 @@ class BaseBackend(object):
 
 
 class EmailBackend(BaseBackend):
+    name = 'email'
 
     def send_notification(self, user, notification, context={}, settings={}):
-        pass
+        subject = context.get('subject', '')
+        body = notification.render_template(user, self.name, context=context)
+        from_email = context.get('from_email', django_settings.DEFAULT_FROM_EMAIL)
+        recipient_list = [user.email]
+        use_html = context.get('use_html', False)
+
+        email_params = {}
+        if use_html:
+            email_params['html_message'] = body
+
+        send_mail(subject, body, from_email, recipient_list, **email_params)

@@ -46,8 +46,8 @@ class Notification(object):
     def is_periodic(self):
         return self.trigger.is_periodic
 
-    def render_template(self, user, backend, context={}, **kwargs):
-        template_path = self.templates.get(backend)
+    def render_template(self, user, backend_name, context={}, **kwargs):
+        template_path = self.templates.get(backend_name)
         if not template_path:
             template_path = self.templates.get('default')
 
@@ -55,12 +55,12 @@ class Notification(object):
             raise Exception("""A template for the specified backend could not be found.
 Please define a 'default' template for the notification""")
 
-        context = self.get_template_context_data(user, backend, **context)
+        context = self.get_template_context_data(user, backend_name, **context)
         template = get_template(template_path)
 
         return template.render(Context(context))
 
-    def get_template_context_data(self, user, backend, **kwargs):
+    def get_template_context_data(self, user, backend_name, **kwargs):
         kwargs['user'] = user
         return kwargs
 

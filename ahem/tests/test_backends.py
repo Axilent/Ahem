@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from django.test import TestCase
 from django.test.utils import override_settings
+from django.core import mail
 
 from model_mommy import mommy
 
@@ -83,8 +84,6 @@ class BaseBackendTests(TestCase):
         self.assertEqual(registry.settings['username'], 'new_username')
 
 
-@override_settings(
-    EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
 class EmailBackendTests(TestCase):
 
     def setUp(self):
@@ -93,6 +92,30 @@ class EmailBackendTests(TestCase):
         self.backend = EmailBackend()
         self.notification = TestNotification()
 
-    def test_simple(self):
+    def test_sends_email(self):
         self.backend.send_notification(
             self.user, self.notification)
+
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_adds_subject_if_passed_on_context(self):
+        self.backend.send_notification(
+            self.user, self.notification,
+            context={'subject': 'Test Subject'})
+
+        self.assertEqual(mail.outbox[0].subject, 'Test Subject')
+
+    def test_uses_context_from_email_if_provided(self):
+        self.backend.send_notification(
+            self.user, self.notification,
+            context={'from_email': 'from@email.com'})
+
+        self.assertEqual(mail.outbox[0].from_email, 'from@email.com')
+
+    def test_recipient_list_is_user_email(self):
+        user = self.user
+
+        self.backend.send_notification(
+            self.user, self.notification)
+
+        self.assertEqual(mail.outbox[0].to[0], user.email)
