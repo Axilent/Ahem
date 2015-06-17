@@ -1,6 +1,3 @@
-"""
-Celery tasks for ahem.
-"""
 
 from celery import shared_task
 
@@ -30,9 +27,9 @@ def dispatch_to_users(notification_name, eta=None, context={}, backends=None, **
 
 @shared_task
 def send_notification(deferred_id):
-    deferred = DeferredNotification.objects \
-        .select_related('user_backend', 'user_backend__user')\
-        .get(id=deferred_id)
+    deferred = ((DeferredNotification.objects
+        .select_related('user_backend', 'user_backend__user'))
+        .get(id=deferred_id))
     user = deferred.user_backend.user
     backend_settings = deferred.user_backend.settings
 

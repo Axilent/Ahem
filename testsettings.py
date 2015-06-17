@@ -31,8 +31,8 @@ INSTALLED_APPS = (
 import django
 from distutils.version import LooseVersion
 
-if LooseVersion(django.get_version()) >= LooseVersion('1.5') \
-    and LooseVersion(django.get_version()) < LooseVersion('1.6'):
+if (LooseVersion(django.get_version()) >= LooseVersion('1.5')
+    and LooseVersion(django.get_version()) < LooseVersion('1.6')):
     INSTALLED_APPS += ('discover_runner',)
     TEST_RUNNER = 'discover_runner.DiscoverRunner'
 
