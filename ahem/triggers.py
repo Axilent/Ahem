@@ -34,6 +34,9 @@ class DelayedTrigger(NotificationTrigger):
         self.at_minute = at_minute
 
     def next_run_eta(self, last_run_at=None):
+        if self.delay_timedelta is None:
+            return None
+
         eta = timezone.now() + self.delay_timedelta
 
         if self.at_hour is not None:
