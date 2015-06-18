@@ -23,7 +23,7 @@ class DelayedTrigger(NotificationTrigger):
     """
     A trigger that will only run one time
     """
-    def __init__(self, delay_timedelta, at_hour=None, at_minute=None):
+    def __init__(self, delay_timedelta=None, at_hour=None, at_minute=None):
         """
         delay_timedelta will be added to the current time.
         If an at_hour or at_minute is passed, the resulting

@@ -56,7 +56,7 @@ MyProjectNotification.schedule(backends=['email'])
 
 #### Overriding trigger
 
-You can also explicitly tell when the notification should be sent by passing ``delay_timedelta`` or ``eta``. Eta should be a Celery crontab instance.
+You can also explicitly tell when the notification should be sent by passing ``delay_timedelta`` or ``eta``.
 
 ```python
 # Notification will be sent at 23:45
@@ -116,4 +116,62 @@ class TheNotification(Notification):
         return queryset.filter(first_name='Camila').all()
 ```
 
+## Triggers
 
+Triggers define when notifications will be send. Currently the two types of triggers available are: ``DelayedTrigger`` and ``CalendarTrigger``, but you can also write custom ones by extending ``NotificationTrigger``.
+
+### DelayedTrigger
+
+``DelayedTrigger``s should receive a timedelta as their first param. This will specify how long should be waited before sending the notification. If a timedelta is not specified, the notification will be imediately sent.
+You can optitionaly pass ``at_hour`` and/or ``at_minute`` kwargs. By doing this, after timedelta is added to the current time, the hour and minute will be overwriten to the ones you specified.
+
+```python
+from datetime import timedelta
+from ahem.triggers import DelayedTrigger
+
+# Will send 2 days after scheduled at 18:00.
+class TheNotification(Notification):
+    ...
+    trigger = DelayedTrigger(timedelta(days=2), at_hour=18, at_minute=0)
+    ...
+```
+
+### CalendarTrigger
+
+``CalendarTrigger`` are periodic notifications, use ``Celery`` ``crontab`` to define it's periodicity. See ``Celery`` documentation for more info:
+[http://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html#crontab-schedules]()
+
+```python
+from celery.schedules import crontab
+from ahem.triggers import CalendarTrigger
+
+# Will send notifications everyday at midnight
+class TheNotification(Notification):
+    ...
+    trigger = CalendarTrigger(crontab(hour=0, minute=0))
+    ...
+```
+
+## Templates
+
+``templates`` specify which template should be used to render notification content. There should be at least a ``default`` template, but you can specify a different one for each backend.
+
+```python
+class TheNotification(Notification):
+    ...
+    templates = {
+        'default': 'path/to/your/template.html',
+        'email': 'path/to/email/template.html'}
+```
+
+### get_template_context_data(self, user, backend_name, **kwargs):
+
+You can override ``get_template_context_data`` to process and pass more context to template rendering. ``User`` is added to context by default, remember to call ``super`` if overriding.
+
+```python
+class TheNotification(Notification):
+    ...
+    def get_template_context_data(self, user, backend_name, **kwargs):
+        kwargs['extra_context'] = 'This will be shown in the notification'
+        return kwargs
+```
