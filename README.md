@@ -203,3 +203,7 @@ class TheNotification(Notification):
         kwargs['extra_context'] = 'This will be shown in the notification'
         return kwargs
 ```
+
+## Tests
+
+Use ``tox`` to run tests.
