@@ -1,9 +1,34 @@
 # Ahem
-Simple Notifications Framework
+Ahem is a notifications framework for Django projects.
 
-# Quickstart
+# Documentation
 
 ## Notifications
+
+To define notifications, create a ```notifications.py``` file in any
+of the installed apps of your project and create a class that extends
+ahem ```Notification``` class.
+
+```python
+from datetime import timedelta
+from ahem.notification import Notification
+from ahem.scopes import QuerySetScope
+from ahem.triggers import DelayedTrigger
+
+class MyProjectNotification(Notification):
+    name = 'my_project'
+
+    scope = QuerySetScope()
+    trigger = DelayedTrigger(timedelta(days=1))
+
+    backends = ['email']
+    templates = {
+        'default': 'path/to/template.html'}
+```
+
+- ```name``` will be used as the id of your notification, it should be unique in your project.
+-
+
 
 ```python
 from ahem import Notification, QuerySetScope, SingleUserScope
