@@ -35,3 +35,8 @@ def celery_is_available():
         return False
     else:
         return True
+
+
+def register_user(backend_name, user, **settings):
+    backend = get_backend(backend_name)
+    backend.register_user(user, **settings)

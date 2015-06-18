@@ -31,10 +31,36 @@ class MyProjectNotification(Notification):
 - ``name`` will be used as the id of your notification, it should be unique in your project.
 - ``scope`` defines which users will receive the notification.
 - ``trigger`` defines how and when the notification will be triggered.
-- ``backends`` is a list of available backends for the notification.
+- ``backends`` is a list of available backend names for the notification.
 - ``templates`` dictionary with templates to be used for each backend.
 
-### Scheduling a notification
+## Backends
+
+Currently, ``EmailBackend`` is the only backend available. Developers are encouraged to build new ones and merge then to this repository via Pull Request.
+
+#### Registering users in a backend
+
+Before sending a notification to a user using a specific backend, you need to register it.
+
+```python
+from ahem.utils import register_user
+
+register_user('backend_name', user,
+    setting1='username', setting2='secure_key')
+```
+
+### EmailBackend
+
+- name: ``email``
+- settings: no settings required. The ``User`` email will be used.
+
+#####Context data
+
+- ``subject`` will be used as the email subject.
+- ``from_email`` the email the message will be sent from, default is DEFAULT_FROM_EMAIL.
+- ``use_html`` if true, the email will be sent with html content type.
+
+## Scheduling a notification
 
 Use the ``schedule`` method to trigger a notification. Use the ``context`` kwarg to pass a context dictionary to the notification.
 
@@ -45,7 +71,7 @@ Use the ``schedule`` method to trigger a notification. Use the ``context`` kwarg
 MyProjectNotification.schedule(context={'some_param': 'value'})
 ```
 
-#### Overriding backends
+### Overriding backends
 
 You can also limit the backends that will be used by passing a list to the ``backends`` kwarg.
 
@@ -54,7 +80,7 @@ You can also limit the backends that will be used by passing a list to the ``bac
 MyProjectNotification.schedule(backends=['email'])
 ```
 
-#### Overriding trigger
+### Overriding trigger
 
 You can also explicitly tell when the notification should be sent by passing ``delay_timedelta`` or ``eta``.
 
