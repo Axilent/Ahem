@@ -207,3 +207,8 @@ class TheNotification(Notification):
 ## Tests
 
 Use ``tox`` to run tests.
+
+## Contributors
+
+Loren Davie - https://github.com/LorenDavie   
+Filipe Ximenes - https://github.com/filipeximenes   
