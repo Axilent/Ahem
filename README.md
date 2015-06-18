@@ -172,6 +172,8 @@ You can override ``get_template_context_data`` to process and pass more context 
 class TheNotification(Notification):
     ...
     def get_template_context_data(self, user, backend_name, **kwargs):
+        kwargs = super(TheNotification, self).get_template_context_data(
+            user, backend_name, **kwargs)
         kwargs['extra_context'] = 'This will be shown in the notification'
         return kwargs
 ```
