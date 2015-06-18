@@ -3,6 +3,12 @@ Ahem is a notifications framework for Django projects.
 
 # Documentation
 
+Ahem can be runned both with or without celery. If the celery lib can be imported, it will try sending notifications asynchronously, else it will send then in the same thread it was called.   
+Periodic notifications will not work without celery.
+
+**Attention**   
+Sending notifications without celery may slow down your system, please be careful.
+
 ## Notifications
 
 To define notifications, create a ``notifications.py`` file in any
