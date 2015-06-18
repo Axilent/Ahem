@@ -1,11 +1,12 @@
+from __future__ import unicode_literals
 
+import pytz
 import math
 
 from django.utils import timezone
 from django.conf import settings
 
 from datetime import timedelta
-import pytz
 
 
 class NotificationTrigger(object):

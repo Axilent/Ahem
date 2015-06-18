@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 try:
-    from setuptools import setup 
-except ImportError, err:
+    from setuptools import setup
+except (ImportError, err):
     from distutils.core import setup
 
 from ahem import VERSION
