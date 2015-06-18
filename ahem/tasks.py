@@ -1,33 +1,53 @@
-""" 
-Celery tasks for ahem.
-"""
-from ahem.celery import app
-from ahem.dispatcher import notification_registry
-from datetime import datetime
+from __future__ import unicode_literals
 
-@app.task
-def notify_recipient(recipient,notification_name,sender,**kwargs):
-    """ 
-    Async notify recipient.
-    """
-    notification = notification_registry[notification_name]
-    if notification.conditions(recipient,sender,**kwargs):
-        notification.send(recipient,sender,**kwargs)
+from django.utils import timezone
 
-@app.task
-def process_deferred_notifications():
-    """ 
-    Dispatches the delayed tasks.
-    """
-    from ahem.models import DeferredNotification
-    now = datetime.now()
-    for deferred_notification in DeferredNotification.objects.filter(resume_on__lte=now):
-        process_deferred_notification.delay(deferred_notification.pk)
+from ahem.utils import get_notification, get_backend, celery_is_available
+from ahem.models import DeferredNotification, UserBackendRegistry
 
-@app.task
-def process_deferred_notification(deferred_notification_id):
-    """ 
-    Processes the deferred notification.
-    """
-    deferred_notification = DeferredNotification.objects.get(pk=deferred_notification_id)
-    deferred_notification.resume()
+if celery_is_available():
+    from celery import shared_task
+else:
+    def shared_task(func):
+        return func
+
+
+@shared_task
+def dispatch_to_users(notification_name, eta=None, context={}, backends=None, **kwargs):
+    notification = get_notification(notification_name)
+    users = notification.get_users(context)
+    for user in users:
+        for backend in backends:
+            user_backend = UserBackendRegistry.objects.filter(user=user, backend=backend).first()
+
+            if user_backend:
+                deferred = DeferredNotification.objects.create(
+                    notification=notification_name,
+                    user_backend=user_backend,
+                    context=context)
+
+                if celery_is_available():
+                    task_id = send_notification.apply_async((deferred.id,), eta=eta)
+                    deferred.task_id = task_id
+                    deferred.save()
+                else:
+                    send_notification(deferred.id)
+
+
+@shared_task
+def send_notification(deferred_id):
+    deferred = ((DeferredNotification.objects
+        .select_related('user_backend', 'user_backend__user'))
+        .get(id=deferred_id))
+    user = deferred.user_backend.user
+    backend_settings = deferred.user_backend.settings
+
+    backend = get_backend(deferred.user_backend.backend)
+    notification = get_notification(deferred.notification)
+
+    backend.send_notification(
+        user, notification, deferred.context, backend_settings)
+
+    deferred.ran_at = timezone.now()
+    deferred.save()
+

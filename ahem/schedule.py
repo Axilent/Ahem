@@ -1,3 +1,0 @@
-"""
-Scheduling and events.
-"""

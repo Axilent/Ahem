@@ -1,35 +1,37 @@
-"""
-Utils.
-"""
-def get_module(module_name):
-    """
-    Imports and returns the named module.
-    """
-    module = __import__(module_name)
-    components = module_name.split('.')
-    for comp in components[1:]:
-        module = getattr(module,comp)
-    return module
+from __future__ import unicode_literals
 
-def backend(setting,default):
-    """
-    Loads the module specified in the setting name, or the specified default.
-    """
-    if hasattr(settings,setting) and getattr(settings,setting):
-        return get_module(getattr(settings,setting))
+from importlib import import_module
+
+from django.conf import settings
+
+from ahem.loader import notification_registry
+from ahem.settings import AHEM_BACKENDS
+
+
+def get_notification(notificaion_name):
+    return notification_registry[notificaion_name]()
+
+
+def get_backend(backend_name):
+    if hasattr(settings, 'AHEM_BACKENDS'):
+        backend_paths = settings.AHEM_BACKENDS
     else:
-        return get_module(default)
+        backend_paths = AHEM_BACKENDS
 
-def get_function(module_name,function_name):
-    """
-    Imports and returns the named function in the specified module.
-    """
-    module = get_module(module_name)
-    return getattr(module,function_name)
+    for path in backend_paths:
+        module, backend_class = path.rsplit(".", 1)
+        module = import_module(module)
+        backend = getattr(module, backend_class)
+        if backend.name == backend_name:
+            return backend()
 
-def gf(function_path):
-    """
-    Shortcut to get function.
-    """
-    module_name, function_name = function_path.rsplit('.',1)
-    return get_function(module_name,function_name)
+    raise Exception("The specifyed backend is not registered. Add it to AHEM_BACKENDS.")
+
+
+def celery_is_available():
+    try:
+        import celery
+    except ImportError:
+        return False
+    else:
+        return True
