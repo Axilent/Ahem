@@ -50,8 +50,10 @@ def send_notification(deferred_id):
     backend = get_backend(deferred.user_backend.backend)
     notification = get_notification(deferred.notification)
 
+    context = notification.get_context_data(user, backend.name, **deferred.context)
+
     backend.send_notification(
-        user, notification, deferred.context, backend_settings)
+        user, notification, context=context, settings=backend_settings)
 
     deferred.ran_at = timezone.now()
     deferred.save()

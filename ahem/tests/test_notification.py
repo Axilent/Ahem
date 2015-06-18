@@ -43,6 +43,12 @@ class TestNotification(Notification):
             return queryset.filter(username=username_filter).all()
         return queryset.all()
 
+    def get_context_data(self, user, backend_name, **kwargs):
+        context = super(TestNotification, self).get_context_data(
+            user, backend_name, **kwargs)
+        context['test'] = 'test works'
+        return context
+
     templates = {
         'default': 'ahem/tests/test_template.html',
         'test_backend': 'ahem/tests/test_template_backend.html'}
@@ -73,12 +79,6 @@ class NotificationTemplateTests(TestCase):
 
         body = self.notification.render_template(user, 'other_backend', context={'context_variable': 'IT_WORKED'})
         self.assertIn('IT_WORKED', body)
-
-    def test_user_is_passed_to_the_context(self):
-        user = self.user
-
-        body = self.notification.render_template(user, 'other_backend')
-        self.assertIn(user.username, body)
 
 
 @override_settings(

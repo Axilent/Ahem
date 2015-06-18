@@ -40,6 +40,22 @@ class MyProjectNotification(Notification):
 - ``backends`` is a list of available backend names for the notification.
 - ``templates`` dictionary with templates to be used for each backend.
 
+## Context
+
+### get_context_data(self, user, backend_name, **kwargs):
+
+You can override ``get_context_data`` to add more variables to the context. ``User`` is added to context by default, remember to call ``super`` if overriding. 
+
+```python
+class TheNotification(Notification):
+    ...
+    def get_context_data(self, user, backend_name, **kwargs):
+        kwargs = super(TheNotification, self).get_context_data(
+            user, backend_name, **kwargs)
+        kwargs['extra_context'] = 'This will be shown in the notification'
+        return kwargs
+```
+
 ## Backends
 
 Currently, ``EmailBackend`` is the only backend available. Developers are encouraged to build new ones and merge then to this repository via Pull Request.
@@ -186,7 +202,8 @@ class TheNotification(Notification):
 
 ## Templates
 
-``templates`` specify which template should be used to render notification content. There should be at least a ``default`` template, but you can specify a different one for each backend.
+``templates`` specify which template should be used to render notification content. There should be at least a ``default`` template, but you can specify a different one for each backend. 
+When rendering the template, all context variables will be available.
 
 ```python
 class TheNotification(Notification):
@@ -194,20 +211,6 @@ class TheNotification(Notification):
     templates = {
         'default': 'path/to/your/template.html',
         'email': 'path/to/email/template.html'}
-```
-
-### get_template_context_data(self, user, backend_name, **kwargs):
-
-You can override ``get_template_context_data`` to process and pass more context to template rendering. ``User`` is added to context by default, remember to call ``super`` if overriding.
-
-```python
-class TheNotification(Notification):
-    ...
-    def get_template_context_data(self, user, backend_name, **kwargs):
-        kwargs = super(TheNotification, self).get_template_context_data(
-            user, backend_name, **kwargs)
-        kwargs['extra_context'] = 'This will be shown in the notification'
-        return kwargs
 ```
 
 ## Tests
