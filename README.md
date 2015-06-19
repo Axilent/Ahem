@@ -1,9 +1,16 @@
 # Ahem
-Ahem is a notifications framework for Django projects.
+Ahem is a notifications framework for Django projects, it uses declarative style just like Django models.
+
+# Instalation
+
+**not currently working**
+```
+pip install ahem
+```
 
 # Documentation
 
-Ahem can be runned both with or without celery. If the celery lib can be imported, it will try sending notifications asynchronously, else it will send then in the same thread it was called.   
+Ahem can be runned both with or without [celery](http://celery.readthedocs.org/). If the celery lib can be imported, it will try sending notifications asynchronously, else it will send then in the same thread it was called.   
 Periodic notifications will not work without celery.
 
 **Attention**   
