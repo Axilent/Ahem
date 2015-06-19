@@ -35,7 +35,7 @@ class DeferredNotification(models.Model):
     task_id = models.CharField(max_length=255)
 
     ran_at = models.DateTimeField(null=True, blank=True)
-    created = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now=True)
 
 
 # Notificaion loader

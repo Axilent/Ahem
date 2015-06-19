@@ -19,9 +19,10 @@ def load_notifications(module):
     """
     from ahem.notification import Notification
 
-    for name, attribute in inspect.getmembers(module):
-        if inspect.isclass(attribute) and issubclass(attribute, Notification) and not attribute is Notification:
-            add_to_registry(attribute)
+    for name, notification in inspect.getmembers(module):
+        if (inspect.isclass(notification) and issubclass(notification, Notification)
+                and not notification is Notification):
+            add_to_registry(notification)
 
 
 def register_notifications():
@@ -35,3 +36,17 @@ def register_notifications():
                 load_notifications(module)
             except ImportError:
                 pass
+
+
+def get_celery_beat_schedule():
+    register_notifications()
+    schedule = {}
+    for _, notification in notification_registry.items():
+        if notification.is_periodic():
+            schedule['ahem_' + notification.name] = {
+                'task': 'ahem.tasks.dispatch_to_users',
+                'schedule': notification.trigger.crontab,
+                'args': (notification.name,)
+            }
+
+    return schedule

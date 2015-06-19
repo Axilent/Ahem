@@ -4,4 +4,4 @@
 
 ## Running Celery
 
-celery -A example worker -l info
+celery -A example worker -B -l info

@@ -194,7 +194,7 @@ class TheNotification(Notification):
 ### CalendarTrigger
 
 ``CalendarTrigger`` are periodic notifications, use ``Celery`` ``crontab`` to define it's periodicity. See ``Celery`` documentation for more info:
-[http://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html#crontab-schedules]()
+[http://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html#crontab-schedules](http://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html#crontab-schedules)
 
 ```python
 from celery.schedules import crontab

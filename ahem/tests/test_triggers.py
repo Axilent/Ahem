@@ -48,7 +48,7 @@ class DelayedTriggerTests(TestCase):
         self.notification = DelayedTriggerNotification()
 
     def test_is_not_periodic(self):
-        self.assertFalse(self.notification.is_periodic)
+        self.assertFalse(self.notification.is_periodic())
 
     def test_eta_is_two_days_from_now(self):
         eta = self.notification.get_next_run_eta()
