@@ -23,9 +23,7 @@ class Notification(object):
     notification will be sent.
 
     METHODS
-    get_template_context_data - returns a dictionary containing
-    variables thar are going to be exposed the template when
-    rendering it.
+    get_context_data - returns a dictionary containing context variables
     schedule - schedules tasks according to notification configuration
     and passed arguments
     filter_scope - can be used to perform context based filters. Returns
@@ -57,12 +55,11 @@ class Notification(object):
             raise Exception("""A template for the specified backend could not be found.
 Please define a 'default' template for the notification""")
 
-        context = self.get_template_context_data(user, backend_name, **context)
         template = get_template(template_path)
 
         return template.render(Context(context))
 
-    def get_template_context_data(self, user, backend_name, **kwargs):
+    def get_context_data(self, user, backend_name, **kwargs):
         kwargs['user'] = user
         return kwargs
 

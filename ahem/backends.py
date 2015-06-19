@@ -58,8 +58,8 @@ class EmailBackend(BaseBackend):
     name = 'email'
 
     def send_notification(self, user, notification, context={}, settings={}):
-        subject = context.get('subject', '')
         body = notification.render_template(user, self.name, context=context)
+        subject = context.get('subject', '')
         from_email = context.get('from_email', django_settings.DEFAULT_FROM_EMAIL)
         recipient_list = [user.email]
         use_html = context.get('use_html', False)

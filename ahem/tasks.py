@@ -15,6 +15,11 @@ else:
 @shared_task
 def dispatch_to_users(notification_name, eta=None, context={}, backends=None, **kwargs):
     notification = get_notification(notification_name)
+
+    # TODO: if is periodic, schedule a execute_periodic_notification task
+    # ScheduledNotification model
+    # dispatch_to_users.apply_assync()
+
     users = notification.get_users(context)
     for user in users:
         for backend in backends:
@@ -45,8 +50,10 @@ def send_notification(deferred_id):
     backend = get_backend(deferred.user_backend.backend)
     notification = get_notification(deferred.notification)
 
+    context = notification.get_context_data(user, backend.name, **deferred.context)
+
     backend.send_notification(
-        user, notification, deferred.context, backend_settings)
+        user, notification, context=context, settings=backend_settings)
 
     deferred.ran_at = timezone.now()
     deferred.save()
