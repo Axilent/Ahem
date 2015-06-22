@@ -4,7 +4,7 @@ Ahem is a notifications framework for Django projects, it uses declarative style
 # Instalation
 
 ```
-pip install ahem **not currently working**
+pip install Ahem
 ```
 
 Add it to the list of installed apps in your settings file:
