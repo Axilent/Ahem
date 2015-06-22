@@ -21,11 +21,13 @@ class QuerySetScope(Scope):
     Returns a queryset.
     """
     def __init__(self, queryset=None):
-        if queryset is None:
-            user_model = get_user_model()
-            queryset = user_model.objects
-
         self.queryset = queryset
+
+    def get_queryset(self, context):
+        if self.queryset is None:
+            user_model = get_user_model()
+            self.queryset = user_model.objects
+        return self.queryset
 
 
 class ContextFilterScope(Scope):

@@ -3,9 +3,36 @@ Ahem is a notifications framework for Django projects, it uses declarative style
 
 # Instalation
 
-**not currently working**
 ```
-pip install ahem
+pip install ahem **not currently working**
+```
+
+Add it to the list of installed apps in your settings file:
+
+```python
+# settings.py
+
+INSTALLED_APPS = (
+    'ahem',
+)
+```
+
+If you are using ``Celery``, configure the celery beat schedule variable so periodic tasks can run:
+
+```python
+# settings.py
+
+from ahem.loader import get_celery_beat_schedule
+CELERYBEAT_SCHEDULE = get_celery_beat_schedule()
+
+# you may add more periodic tasks after this:
+CELERYBEAT_SCHEDULE.update({
+    'other-task': {
+        'task': 'mytasks.the_taks',
+        'schedule': crontab(...),
+    }
+})
+
 ```
 
 # Documentation
@@ -104,7 +131,7 @@ MyProjectNotification.schedule(context={'some_param': 'value'})
 
 You can also limit the backends that will be used by passing a list to the ``backends`` kwarg.
 
-** Since the EmailBackend is currently the only one available, this feature is currently useless **
+**Since the EmailBackend is currently the only one available, this feature is currently useless**
 ```python
 MyProjectNotification.schedule(backends=['email'])
 ```
@@ -194,7 +221,7 @@ class TheNotification(Notification):
 ### CalendarTrigger
 
 ``CalendarTrigger`` are periodic notifications, use ``Celery`` ``crontab`` to define it's periodicity. See ``Celery`` documentation for more info:
-[http://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html#crontab-schedules]()
+[http://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html#crontab-schedules](http://celery.readthedocs.org/en/latest/userguide/periodic-tasks.html#crontab-schedules)
 
 ```python
 from celery.schedules import crontab

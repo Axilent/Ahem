@@ -42,9 +42,9 @@ class Notification(object):
     def get_next_run_eta(self, last_run_at=None):
         return self.trigger.next_run_eta(last_run_at)
 
-    @property
-    def is_periodic(self):
-        return self.trigger.is_periodic
+    @classmethod
+    def is_periodic(cls):
+        return cls.trigger.is_periodic
 
     def render_template(self, user, backend_name, context={}, **kwargs):
         template_path = self.templates.get(backend_name)

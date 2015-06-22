@@ -88,6 +88,9 @@ CELERY_TIMEZONE = 'America/Sao_Paulo'
 
 STATIC_URL = '/static/'
 
-CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
-CELERY_ALWAYS_EAGER = True
+# CELERY_EAGER_PROPAGATES_EXCEPTIONS = True
+# CELERY_ALWAYS_EAGER = True
 BROKER_URL = 'django://'
+
+from ahem.loader import get_celery_beat_schedule
+CELERYBEAT_SCHEDULE = get_celery_beat_schedule()
