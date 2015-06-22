@@ -12,7 +12,7 @@ setup(
     description='Simple, but rich, declarative notification framework for Django',
     packages=['ahem'],
     include_package_data=True,
-    license='MIT',
+    license='BSD',
     author='Loren Davie',
     author_email='code@axilent.com',
     url='https://github.com/Axilent/Ahem',
