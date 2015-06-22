@@ -18,7 +18,7 @@ setup(
     url='https://github.com/Axilent/Ahem',
     install_requires=['Django>=1.4'],
     classifiers=[
-        'Development Status :: 1 - Pre-Alpha',
+        'Development Status :: 2 - Pre-Alpha',
         'Environment :: Web Environment',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
