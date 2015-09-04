@@ -40,3 +40,8 @@ def celery_is_available():
 def register_user(backend_name, user, **settings):
     backend = get_backend(backend_name)
     backend.register_user(user, **settings)
+
+
+def schedule_notification(notificaion_name, **params):
+    notificaion = get_notification(notificaion_name)
+    notificaion.schedule(**params)
