@@ -6,7 +6,7 @@ from ahem.scopes import QuerySetScope
 from ahem.triggers import CalendarTrigger, DelayedTrigger
 
 
-class TestAppNotificaion(Notification):
+class TestAppNotification(Notification):
     name = 'test_app'
 
     trigger = DelayedTrigger()

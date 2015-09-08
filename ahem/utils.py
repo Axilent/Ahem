@@ -8,8 +8,8 @@ from ahem.loader import notification_registry
 from ahem.settings import AHEM_BACKENDS
 
 
-def get_notification(notificaion_name):
-    return notification_registry[notificaion_name]()
+def get_notification(notification_name):
+    return notification_registry[notification_name]()
 
 
 def get_backend(backend_name):
@@ -42,6 +42,6 @@ def register_user(backend_name, user, **settings):
     backend.register_user(user, **settings)
 
 
-def schedule_notification(notificaion_name, **params):
-    notification = get_notification(notificaion_name)
+def schedule_notification(notification_name, **params):
+    notification = get_notification(notification_name)
     notification.schedule(**params)
