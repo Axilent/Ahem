@@ -16,7 +16,9 @@ setup(
     author='Loren Davie',
     author_email='code@axilent.com',
     url='https://github.com/Axilent/Ahem',
-    install_requires=['Django>=1.4'],
+    install_requires=[
+        'Django>=1.4',
+        'jsonfield==1.0.3'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Web Environment',

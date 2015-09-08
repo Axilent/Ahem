@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import logging
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.conf import settings as django_settings
@@ -69,3 +71,24 @@ class EmailBackend(BaseBackend):
             email_params['html_message'] = body
 
         send_mail(subject, body, from_email, recipient_list, **email_params)
+
+
+class LoggingBackend(BaseBackend):
+    """
+    CONTEXT PARAMS
+    logger - logger name
+    logging_level - the level of the logger
+    """
+    name = 'logging'
+
+    def send_notification(self, user, notification, context={}, settings={}):
+        text = notification.render_template(user, self.name, context=context)
+
+        logger_name = context.get('logger', None)
+        logging_level = context.get('logging_level', 'info')
+        if logger_name:
+            logger = logging.getLogger(logger_name)
+        else:
+            logger = logging
+
+        getattr(logger, logging_level)(text)

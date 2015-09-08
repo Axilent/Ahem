@@ -3,7 +3,7 @@ from django.test import TestCase
 
 from ahem.utils import get_notification
 
-from testapp.notifications import TestAppNotificaion
+from testapp.notifications import TestAppNotification
 
 
 class LoaderTests(TestCase):
@@ -11,4 +11,4 @@ class LoaderTests(TestCase):
     def test_loads_app_notifications(self):
         notification = get_notification('test_app')
 
-        self.assertEqual(notification.__class__, TestAppNotificaion)
+        self.assertEqual(notification.__class__, TestAppNotification)
