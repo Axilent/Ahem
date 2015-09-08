@@ -43,5 +43,5 @@ def register_user(backend_name, user, **settings):
 
 
 def schedule_notification(notificaion_name, **params):
-    notificaion = get_notification(notificaion_name)
-    notificaion.schedule(**params)
+    notification = get_notification(notificaion_name)
+    notification.schedule(**params)
