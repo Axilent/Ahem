@@ -32,8 +32,13 @@ class Notification(object):
     a list of users.
     """
 
-    def get_users(self, context):
-        queryset = self.scope.get_users_queryset(context)
+    def get_scope(self, backend):
+        return self.scope
+
+    def get_users(self, backend, context):
+        scope = self.get_scope(backend)
+        queryset = scope.get_users_queryset(context)
+
         if isinstance(queryset, EmptyQuerySet):
             users = [AnonymousUser()]
         elif hasattr(self, 'filter_scope'):

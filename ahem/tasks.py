@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.utils import timezone
+from django.contrib.auth.models import AnonymousUser
 
 from ahem.utils import get_notification, get_backend, celery_is_available
 from ahem.models import DeferredNotification, UserBackendRegistry
@@ -17,23 +18,38 @@ def dispatch_to_users(notification_name, eta=None, context={}, backends=None, **
     notification = get_notification(notification_name)
     task_backends = notification.get_task_backends(backends)
 
-    users = notification.get_users(context)
-    for user in users:
-        for backend in task_backends:
-            user_backend = UserBackendRegistry.objects.filter(user=user, backend=backend).first()
+    for backend in task_backends:
+        users = notification.get_users(backend, context)
+        for user in users:
+            if isinstance(user, AnonymousUser):
+                send_anonymous_notification.apply_async(
+                    (notification_name, backend_name, context),
+                    eta=eta)
+            else:
+                user_backend = UserBackendRegistry.objects.filter(
+                    user=user, backend=backend).first()
+                if user_backend:
+                    deferred = DeferredNotification.objects.create(
+                        notification=notification_name,
+                        user_backend=user_backend,
+                        context=context)
 
-            if user_backend:
-                deferred = DeferredNotification.objects.create(
-                    notification=notification_name,
-                    user_backend=user_backend,
-                    context=context)
+                    if celery_is_available():
+                        task_id = send_notification.apply_async(
+                            (deferred.id,),
+                            eta=eta)
+                        deferred.task_id = task_id
+                        deferred.save()
+                    else:
+                        send_notification(deferred.id)
 
-                if celery_is_available():
-                    task_id = send_notification.apply_async((deferred.id,), eta=eta)
-                    deferred.task_id = task_id
-                    deferred.save()
-                else:
-                    send_notification(deferred.id)
+@shared_task
+def send_anonymous_notification(notification_name, backend_name, context):
+    notification = get_notification(notification)
+    backend = get_backend(backend)
+
+    backend.send_notification(
+        AnonymousUser(), notification, context=context, settings=backend_settings)
 
 
 @shared_task

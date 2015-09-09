@@ -35,7 +35,7 @@ class QuerySetScope(Scope):
     def get_queryset(self, context):
         if self.queryset is None:
             user_model = get_user_model()
-            self.queryset = user_model.objects
+            self.queryset = user_model.objects.get_queryset()
         return self.queryset
 
 

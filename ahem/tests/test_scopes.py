@@ -48,7 +48,7 @@ class QuerySetScopeTests(TestCase):
         users = self.users
         notification = QuerySetNotification()
 
-        notification_users = notification.get_users({})
+        notification_users = notification.get_users('test_backend', {})
         self.assertEqual(len(users), len(notification_users))
 
     def test_a_queryset_can_be_passed_to_the_scope(self):
@@ -56,7 +56,7 @@ class QuerySetScopeTests(TestCase):
 
         notification = CustomQuerySetNotification()
 
-        notification_users = notification.get_users({})
+        notification_users = notification.get_users('test_backend', {})
         self.assertEqual(len(staffs), len(notification_users))
 
 
@@ -82,11 +82,13 @@ class ContextFilterScopeTests(TestCase):
     def test_returns_only_non_staffs(self):
         users = self.users
 
-        notification_users = self.notification.get_users({'user_is_staff': False})
+        notification_users = self.notification.get_users(
+            'test_backend', {'user_is_staff': False})
         self.assertEqual(len(users), len(notification_users))
 
     def test_returns_only_staffs(self):
         staffs = self.staffs
 
-        notification_users = self.notification.get_users({'user_is_staff': True})
+        notification_users = self.notification.get_users(
+            'test_backend', {'user_is_staff': True})
         self.assertEqual(len(staffs), len(notification_users))
