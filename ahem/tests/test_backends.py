@@ -2,9 +2,12 @@ from __future__ import unicode_literals
 
 from datetime import timedelta
 
+from mock import patch
+
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.core import mail
+from django.contrib.auth.models import AnonymousUser
 
 from model_mommy import mommy
 
@@ -13,7 +16,8 @@ from ahem.backends import BaseBackend
 from ahem.notification import Notification
 from ahem.scopes import QuerySetScope
 from ahem.triggers import DelayedTrigger
-from ahem.backends import BaseBackend, EmailBackend
+from ahem.backends import (
+    BaseBackend, EmailBackend, LoggingBackend)
 
 
 class TestBackend(BaseBackend):
@@ -29,6 +33,17 @@ class TestNotification(Notification):
 
     templates = {
         'default': 'ahem/tests/test_template.html'}
+
+
+class Test2Notification(Notification):
+    name = 'delayed_trigger_notification'
+    backends = ['test_backend']
+
+    scope = QuerySetScope()
+    trigger = DelayedTrigger(timedelta(days=2))
+
+    templates = {
+        'default': 'ahem/tests/test_template_backend.html'}
 
 
 class TestBackend(BaseBackend):
@@ -120,3 +135,17 @@ class EmailBackendTests(TestCase):
             self.user, self.notification)
 
         self.assertEqual(mail.outbox[0].to[0], user.email)
+
+
+class LoggingBackendTests(TestCase):
+
+    def setUp(self):
+        self.backend = LoggingBackend()
+        self.notification = Test2Notification()
+
+    def test_send_message(self):
+        with patch.object(self.backend.get_logger(None), 'error') as mock_logger:
+            self.backend.send_notification(
+                AnonymousUser(), self.notification,
+                context={'logging_level': 'error'})
+            mock_logger.assert_called_once_with('backend template')

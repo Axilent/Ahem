@@ -81,14 +81,18 @@ class LoggingBackend(BaseBackend):
     """
     name = 'logging'
 
-    def send_notification(self, user, notification, context={}, settings={}):
-        text = notification.render_template(user, self.name, context=context)
-
-        logger_name = context.get('logger', None)
-        logging_level = context.get('logging_level', 'info')
+    def get_logger(self, logger_name):
         if logger_name:
             logger = logging.getLogger(logger_name)
         else:
             logger = logging
+
+        return logger
+
+    def send_notification(self, user, notification, context={}, settings={}):
+        text = notification.render_template(user, self.name, context=context)
+
+        logging_level = context.get('logging_level', 'info')
+        logger = self.get_logger(context.get('logger', None))
 
         getattr(logger, logging_level)(text)
