@@ -22,7 +22,7 @@ class AnonymousUserScope(Scope):
     Returns an empty queryset
     """
     def get_queryset(self, context):
-        return EmptyQuerySet()
+        return EmptyQuerySet
 
 
 class QuerySetScope(Scope):

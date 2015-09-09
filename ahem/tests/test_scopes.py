@@ -1,13 +1,14 @@
 from __future__ import unicode_literals
 
 from django.test import TestCase
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 
 from model_mommy import mommy
 
 from ahem.backends import BaseBackend
 from ahem.notification import Notification
-from ahem.scopes import QuerySetScope, ContextFilterScope
+from ahem.scopes import (
+    QuerySetScope, ContextFilterScope, AnonymousUserScope)
 
 
 class TestBackend(BaseBackend):
@@ -17,6 +18,26 @@ class TestBackend(BaseBackend):
 
 class OtherBackend(BaseBackend):
     name = 'other_backend'
+
+
+class AnonymousUserNotification(Notification):
+    name = 'anonymous_user_notification'
+    backends = ['test_backend']
+
+    scope = AnonymousUserScope()
+
+    templates = {
+        'default': 'ahem/tests/test_template.html'}
+
+
+class AnonymousUserScopeTests(TestCase):
+
+    def test_returns_list_with_anonymous_user(self):
+        notification = AnonymousUserNotification()
+
+        notification_users = notification.get_users('test_backend', {})
+        self.assertEqual(len(notification_users), 1)
+        self.assertTrue(isinstance(notification_users[0], AnonymousUser))
 
 
 class QuerySetNotification(Notification):

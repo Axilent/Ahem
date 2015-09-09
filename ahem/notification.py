@@ -39,7 +39,7 @@ class Notification(object):
         scope = self.get_scope(backend)
         queryset = scope.get_users_queryset(context)
 
-        if isinstance(queryset, EmptyQuerySet):
+        if queryset == EmptyQuerySet:
             users = [AnonymousUser()]
         elif hasattr(self, 'filter_scope'):
             users = self.filter_scope(queryset, context)
