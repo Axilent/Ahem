@@ -23,7 +23,7 @@ def dispatch_to_users(notification_name, eta=None, context={}, backends=None, **
         for user in users:
             if isinstance(user, AnonymousUser):
                 send_anonymous_notification.apply_async(
-                    (notification_name, backend_name, context),
+                    (notification_name, backend, context),
                     eta=eta)
             else:
                 user_backend = UserBackendRegistry.objects.filter(
@@ -45,11 +45,11 @@ def dispatch_to_users(notification_name, eta=None, context={}, backends=None, **
 
 @shared_task
 def send_anonymous_notification(notification_name, backend_name, context):
-    notification = get_notification(notification)
-    backend = get_backend(backend)
+    notification = get_notification(notification_name)
+    backend = get_backend(backend_name)
 
     backend.send_notification(
-        AnonymousUser(), notification, context=context, settings=backend_settings)
+        AnonymousUser(), notification, context=context)
 
 
 @shared_task
