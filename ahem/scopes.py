@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth import get_user_model
+from django.db.models.query import EmptyQuerySet
 
 
 class Scope(object):
@@ -16,6 +17,14 @@ class Scope(object):
         return self.queryset
 
 
+class AnonymousUserScope(Scope):
+    """
+    Returns an empty queryset
+    """
+    def get_queryset(self, context):
+        return EmptyQuerySet
+
+
 class QuerySetScope(Scope):
     """
     Returns a queryset.
@@ -26,7 +35,7 @@ class QuerySetScope(Scope):
     def get_queryset(self, context):
         if self.queryset is None:
             user_model = get_user_model()
-            self.queryset = user_model.objects
+            self.queryset = user_model.objects.get_queryset()
         return self.queryset
 
 

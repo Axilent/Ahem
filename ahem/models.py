@@ -38,5 +38,5 @@ class DeferredNotification(models.Model):
     created_at = models.DateTimeField(auto_now=True)
 
 
-# Notificaion loader
+# Notification loader
 register_notifications()

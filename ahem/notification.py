@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 from django.utils import timezone
 from django.template.loader import get_template
 from django.template import Context, Template
+from django.db.models.query import EmptyQuerySet
+from django.contrib.auth.models import AnonymousUser
 
 from ahem.tasks import dispatch_to_users
 from ahem.utils import celery_is_available
@@ -30,9 +32,16 @@ class Notification(object):
     a list of users.
     """
 
-    def get_users(self, context):
-        queryset = self.scope.get_users_queryset(context)
-        if hasattr(self, 'filter_scope'):
+    def get_scope(self, backend):
+        return self.scope
+
+    def get_users(self, backend, context):
+        scope = self.get_scope(backend)
+        queryset = scope.get_users_queryset(context)
+
+        if queryset == EmptyQuerySet:
+            users = [AnonymousUser()]
+        elif hasattr(self, 'filter_scope'):
             users = self.filter_scope(queryset, context)
         else:
             users = queryset.all()

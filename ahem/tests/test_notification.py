@@ -171,14 +171,14 @@ class NotificationMethodsTests(TestCase):
     def test_get_users(self):
         user = self.user
 
-        users = self.notification.get_users({})
+        users = self.notification.get_users('test_backend', {})
 
         self.assertEqual(users[0], user)
 
     def test_filter_scope(self):
         other_user = mommy.make('auth.User', username='username')
 
-        users = self.notification.get_users(context={'username_filter': 'username'})
+        users = self.notification.get_users('test_backend', context={'username_filter': 'username'})
 
         self.assertEqual(len(users), 1)
         self.assertEqual(users[0], other_user)
