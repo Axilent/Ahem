@@ -1,4 +1,4 @@
-
+from __future__ import unicode_literals
 
 import inspect
 from importlib import import_module
@@ -41,7 +41,7 @@ def register_notifications():
 def get_celery_beat_schedule():
     register_notifications()
     schedule = {}
-    for _, notification in list(notification_registry.items()):
+    for _, notification in notification_registry.items():
         if notification.is_periodic():
             schedule['ahem_' + notification.name] = {
                 'task': 'ahem.tasks.dispatch_to_users',
