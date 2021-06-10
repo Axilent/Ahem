@@ -1,4 +1,4 @@
-Django==1.8
+Django==2.2.24
 jsonfield==1.0.3
 pysqlite==2.6.3
 django-discover-runner==1
